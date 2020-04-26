@@ -17,7 +17,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 project(QPiper
-        VERSION 0.9
+        VERSION 0.9.0
         DESCRIPTION "Qt application to configure gaming devices"
         HOMEPAGE_URL "https://github.com/beatussum/qpiper/"
         LANGUAGES CXX)
@@ -50,7 +50,7 @@ add_gcc_cxx_flags("-Wsign-compare -Wunreachable-code -Wmissing-braces")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(BUILD_TYPE_DEBUG TRUE)
     add_gcc_cxx_flags("-O0")
-    add_gcc_cxx_flags("-Wreorder -Wpadded")
+    add_gcc_cxx_flags("-Wpadded")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_gcc_cxx_flags("-O2")
 endif()

@@ -17,9 +17,11 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR})
 
 set(QPIPER_UI)
-set(QPIPER_HPP)
+set(QPIPER_HPP
+    dbus/DBusAbstractInterface.hpp)
 set(QPIPER_CPP
-    main.cpp)
+    main.cpp
+    dbus/DBusAbstractInterface.cpp)
 
 set(DOCS_DIR "${CMAKE_BINARY_DIR}/docs" CACHE PATH
     "The path where the documention is built")
