@@ -68,6 +68,17 @@ public:
     explicit DBusPropertyException(const char* name, const char* desc)
         : DBusPropertyException(name, ": " + std::string(desc) + '.')
     {}
+
+    /**
+     * @brief Check if the value of a property is within a given range
+     *
+     * @param name  the name of the property
+     * @param value the value of the property
+     * @param lim   maximum
+     *
+     * @throws DBusPropertyException if the value is higher than value
+     */
+    static void checkInRange(const char* name, quint32 value, quint32 lim);
 };
 
 

@@ -61,7 +61,9 @@ public:
     explicit DBusLedInterface(const QString& obj);
 
     static QString getModeDescription(const Modes mode);
-    static QString getColorDepthDescription(const ColorDepths color);
+    static QString getColorDepthDescription(const ColorDepths depth);
+
+    quint32 getBitsNumber() const;
 
     Modes getMode() const;
     void setMode(const Modes mode);
@@ -81,6 +83,8 @@ private:
     void setMode_(const quint32 mode);
 
     quint32 getColorDepth_() const;
+private:
+    quint32 m_colorMax_;
 };
 
 

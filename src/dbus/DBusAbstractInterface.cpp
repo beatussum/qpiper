@@ -19,6 +19,14 @@
 #include "dbus/DBusAbstractInterface.hpp"
 
 
+void DBusPropertyException::checkInRange(const char* name, quint32 value, quint32 lim)
+{
+    if (value > lim)
+        throw DBusPropertyException(name, "not in the range [0;"
+                                    + std::to_string(lim) + ']');
+}
+
+
 QString DBusAbstractInterface::m_serviceName_;
 
 DBusAbstractInterface::~DBusAbstractInterface() {}
