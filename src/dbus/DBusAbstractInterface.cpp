@@ -18,29 +18,20 @@
 
 #include "dbus/DBusAbstractInterface.hpp"
 
-#include <QtCore/QProcessEnvironment>
 
-const char* DBusException::what() const noexcept
+QString DBusAbstractInterface::m_serviceName_;
+
+DBusAbstractInterface::~DBusAbstractInterface() {}
+
+void DBusAbstractInterface::setServiceName(const QString& name) noexcept
 {
-    return QString("%1: %2")
-        .arg(m_error_.name())
-        .arg(m_error_.message())
-        .toLocal8Bit().data();
+    m_serviceName_ = name;
 }
 
-const QString DBusAbstractInterface::m_kServiceName = getServiceName_();
-
-QString DBusAbstractInterface::getServiceName_()
+void DBusAbstractInterface::callAndCheck(const QString& method)
 {
-    QProcessEnvironment env;
+    const QDBusReply<void> r = call(method);
 
-    return env.value("RATBAG_TEST").isEmpty()
-        ? "org.freedesktop.ratbag1"
-        : "org.freedesktop.ratbag_devel1";
-}
-
-bool DBusAbstractInterface::connect(const QString& name, QObject* receiver, const char* slot)
-{
-    return QDBusConnection::systemBus().connect(m_kServiceName, m_obj_, m_interface_,
-                                                name, receiver, slot);
+    if (!r.isValid())
+        throw DBusCallException(r.error());
 }

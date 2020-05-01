@@ -16,36 +16,60 @@
  */
 
 
-#ifndef QPIPER_DBUSABSTRACTINTERFACE_HPP
-#define QPIPER_DBUSABSTRACTINTERFACE_HPP
+#ifndef QPIPER_DBUS_ABSTRACT_INTERFACE_HPP
+#define QPIPER_DBUS_ABSTRACT_INTERFACE_HPP
 
 #include <QtDBus/QDBusInterface>
 #include <QtDBus/QDBusReply>
 
 
 /**
- * @class DBusException dbus/DBusAbstractInterface.hpp
- * @brief An exception in case of DBus error
+ * @class DBusCallException dbus/DBusAbstractInterface.hpp
+ * @brief An exception in case of a DBus error when calling a method
  */
-class DBusException final : public std::runtime_error
+class DBusCallException final : public std::runtime_error
+{
+public:
+    explicit DBusCallException(const QDBusError& error)
+        : std::runtime_error(QString("%1: %2")
+                             .arg(error.name())
+                             .arg(error.message())
+                             .toLocal8Bit().data())
+    {}
+};
+
+
+/**
+ * @class DBusPropertyException dbus/DBusAbstractInterface.hpp
+ * @brief An exception in case of property error
+ */
+class DBusPropertyException final : public std::runtime_error
 {
 public:
     /**
-     * @brief Construct a new DBusException object
+     * @brief Construct a new DBusPropertyException object with a name and
+     * a possible custom suffix
      *
-     * @param e the QDBusError object
+     * @param name   the name of the property
+     * @param suffix a suffix added to error message
      */
-    DBusException(QDBusError e);
+    explicit DBusPropertyException(const char* name, const std::string& suffix = ".")
+        : std::runtime_error("Unable to get or set the property "
+                             + std::string(name) + suffix)
+    {}
 
     /**
-     * @brief Get some information about the exception
+     * @brief Construct a new DBusPropertyException object with a name and
+     * a description
      *
-     * @return The message
+     * @param name the name of the property
+     * @param desc a description about the exception
      */
-    const char* what() const noexcept override;
-private:
-    QDBusError m_error_;
+    explicit DBusPropertyException(const char* name, const char* desc)
+        : DBusPropertyException(name, ": " + std::string(desc) + '.')
+    {}
 };
+
 
 /**
  * @class DBusAbstractInterface dbus/DBusAbstractInterface.hpp
@@ -53,68 +77,89 @@ private:
  *
  * This class provides some useful methods in order to avoid
  * repetitive code.
+ *
+ * @warning Before using any interface, please first set the name of the service
+ * via DBusAbstractInterface::setServiceName(const QString& name).
  */
 class DBusAbstractInterface : public QDBusInterface
 {
 public:
     /**
-     * @brief The name of the DBus service
-     *
-     * This constant can have different values depending on
-     * whether **RATBAG_TEST** is set or not.
-     */
-    static const QString m_kServiceName;
-public:
-    /**
      * @brief Construct a new DBusAbstractInterface object
      *
      * @param interface the interface name without the root prefix: e.g.
-     * _button_ not _org.example.button_
+     *                  _button_ not _org.example.button_
      * @param obj       the DBusAbstractInterface object
      */
-    DBusAbstractInterface(const QString& interface, const QString& obj) noexcept
-        : m_interface_(m_kServiceName + '.' + interface)
-        , m_obj_(obj)
-        , QDBusInterface(m_kServiceName, m_interface_,
-                         m_obj_, QDBusConnection::systemBus())
-        {}
+    explicit DBusAbstractInterface(const QString& interface, const QString& obj)
+        : QDBusInterface(m_serviceName_, obj,
+                         m_serviceName_ + '.' + interface,
+                         QDBusConnection::systemBus())
+    {}
+
+    virtual ~DBusAbstractInterface() = 0;
 
     /**
-     * @brief An alias to QDBusConnection::connect()
+     * @brief Set the name of the service
      *
-     * @param  name     the name of the signal
-     * @param  receiver the object receiving the signal
-     * @param  slot     the name of the slot
-     * @return true     if the connection has been successful
-     * @return false    if the connection has not been successful
+     * @param name the name of the service
      */
-    bool connect(const QString& name, QObject* receiver, const char* slot);
+    static void setServiceName(const QString& name) noexcept;
 
     /**
-     * @brief Get the property value
+     * @brief Call a void method
      *
-     * @tparam T        the type returned by the property
-     * @param  property the name of the property
-     * @return T        the type returned by the property
+     * @param method the name of the method
+     *
+     * @throws DBusCallException if an error has occured
+     */
+    void callAndCheck(const QString& method);
+
+    /**
+     * @brief get the value of a DBus property
+     *
+     * @tparam T    the type of the property
+     * @param  name the name of the property
+     *
+     * @return a valid QVariant
+     * @throws DBusPropertyException if the QVariant is invalid
      */
     template<class T>
-    T getProperty(const QString& property);
+    T getPropertyAndCheck(const char* name) const;
+
+    /**
+     * @brief set a DBus property
+     *
+     * @tparam T     the type of the property
+     * @param  name  the name of the property
+     * @param  value the desired value
+     *
+     * @throws DBusPropertyException if the QVariant is invalid
+     */
+    template<class T>
+    void setPropertyAndCheck(const char* name, T value);
 private:
-    static QString getServiceName_();
-private:
-    QString m_interface_;
-    QString m_obj_;
+    static QString m_serviceName_;
 };
 
 template<class T>
-T DBusAbstractInterface::getProperty(const QString& property)
+T DBusAbstractInterface::getPropertyAndCheck(const char* name) const
 {
-    QDBusReply<T> reply = call(property);
+    QVariant ret = property(name);
 
-    if (!reply.isValid())
-        throw DBusException(reply.error());
-
-    return static_cast<T>(reply);
+    if (!ret.isValid()) {
+        throw DBusPropertyException(name, "The QVariant is not valid");
+    } else {
+        return qvariant_cast<T>(ret);
+    }
 }
 
-#endif // QPIPER_DBUSABSTRACTINTERFACE_HPP
+template<class T>
+void DBusAbstractInterface::setPropertyAndCheck(const char* name, T value)
+{
+    if (!setProperty(name, QVariant::fromValue(value)))
+        throw DBusPropertyException(name);
+}
+
+
+#endif // QPIPER_DBUS_ABSTRACT_INTERFACE_HPP
