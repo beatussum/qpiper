@@ -15,6 +15,11 @@
  * with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file core/core.hpp
+ * @brief Some core utils
+ */
+
 
 #ifndef QPIPER_CORE_HPP
 #define QPIPER_CORE_HPP
@@ -29,26 +34,69 @@
 #define qByteL(ba) QByteArrayLiteral(ba)
 
 
+/**
+ * @brief true if the output should be colored
+ */
 extern const bool isColoredOutput;
 
 QLatin1String operator "" _qls(const char* value, const std::size_t size);
+
+/**
+ * @brief Check the value of an environment variable
+ *
+ * @param name  the name of the environment variable without its prefix:
+ *              e.g. _VAR_ not _QPIPER_VAR_
+ * @param value the value to be tested
+ *
+ * @return true if the value of \p name is equal to \p value
+ */
 bool qPiperGetEnv(const char* name, const QByteArray value);
 
+/**
+ * @brief Contain some ANSI escape code
+ */
 namespace AnsiColor
 {
+    /**
+     * @brief Reset
+     */
     inline const QLatin1String rst = "\u001B[0m"_qls;
 
+    /**
+     * @brief About the foreground
+     */
     namespace fg
     {
+        /**
+         * @brief Bold
+         */
         inline const QLatin1String b = "\u001B[1m"_qls;
+        /**
+         * @brief Bold red
+         */
         inline const QLatin1String bred = "\u001B[1;31m"_qls;
+        /**
+         * @brief Bold green
+         */
         inline const QLatin1String bgreen = "\u001B[1;32m"_qls;
     }
 
+    /**
+     * @brief About the background
+     */
     namespace bg
     {
+        /**
+         * @brief Bright yellow
+         */
         inline const QLatin1String bryellow = "\u001B[103m"_qls;
+        /**
+         * @brief Bright blue
+         */
         inline const QLatin1String brblue = "\u001B[104m"_qls;
+        /**
+         * @brief Bright cyan
+         */
         inline const QLatin1String brcyan = "\u001B[106m"_qls;
     }
 }
