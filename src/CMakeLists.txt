@@ -37,8 +37,6 @@ find_package(Qt5 REQUIRED
              COMPONENTS DBus Gui Widgets)
 find_package(Doxygen REQUIRED)
 
-configure_file(config-qpiper.hpp.in
-               "${CMAKE_CURRENT_BINARY_DIR}/config-qpiper.hpp")
 set(CMAKE_AUTOMOC TRUE)
 set(CMAKE_AUTOUIC TRUE)
 
