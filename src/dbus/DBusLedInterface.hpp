@@ -66,7 +66,7 @@ public:
     static QString getModeDescription(const Modes mode);
     static QString getColorDepthDescription(const ColorDepths depth);
 
-    quint32 getBitsNumber() const;
+    constexpr quint32 getBitsNumber() const;
 
     Modes getMode() const;
     void setMode(const Modes mode);
