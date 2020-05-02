@@ -18,12 +18,15 @@
 
 #include "dbus/DBusAbstractInterface.hpp"
 
+#include <QtCore/QtDebug>
+
 
 void DBusPropertyException::checkInRange(const char* name, quint32 value, quint32 lim)
 {
     if (value > lim)
-        throw DBusPropertyException(name, "not in the range [0;"
-                                    + std::to_string(lim) + ']');
+        throw DBusPropertyException(name, QString("%1 not in the range [0;%2]")
+                                          .arg(value)
+                                          .arg(lim));
 }
 
 
@@ -33,6 +36,7 @@ DBusAbstractInterface::~DBusAbstractInterface() {}
 
 void DBusAbstractInterface::setServiceName(const QString& name) noexcept
 {
+    qDebug() << "service name set to" << name;
     m_serviceName_ = name;
 }
 

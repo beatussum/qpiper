@@ -34,7 +34,7 @@ public:
         : std::runtime_error(QString("%1: %2")
                              .arg(error.name())
                              .arg(error.message())
-                             .toLocal8Bit().data())
+                             .toStdString())
     {}
 };
 
@@ -51,11 +51,10 @@ public:
      * a possible custom suffix
      *
      * @param name   the name of the property
-     * @param suffix a suffix added to error message
      */
-    explicit DBusPropertyException(const char* name, const std::string& suffix = ".")
-        : std::runtime_error("Unable to get or set the property "
-                             + std::string(name) + suffix)
+    explicit DBusPropertyException(const QString& name)
+        : std::runtime_error(QString("Unable to get or set the property %1.")
+                             .arg(name).toStdString())
     {}
 
     /**
@@ -65,8 +64,9 @@ public:
      * @param name the name of the property
      * @param desc a description about the exception
      */
-    explicit DBusPropertyException(const char* name, const char* desc)
-        : DBusPropertyException(name, ": " + std::string(desc) + '.')
+    explicit DBusPropertyException(const char* name, const QString& desc)
+        : DBusPropertyException(QString("%1: %2")
+                                .arg(name).arg(desc))
     {}
 
     /**
@@ -159,7 +159,7 @@ T DBusAbstractInterface::getPropertyAndCheck(const char* name) const
     QVariant ret = property(name);
 
     if (!ret.isValid()) {
-        throw DBusPropertyException(name, "The QVariant is not valid");
+        throw DBusPropertyException(name, "the QVariant is not valid");
     } else {
         return qvariant_cast<T>(ret);
     }

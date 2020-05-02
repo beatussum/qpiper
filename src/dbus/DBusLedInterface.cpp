@@ -16,10 +16,12 @@
  */
 
 
+#include "core/core.hpp"
 #include "dbus/DBusLedInterface.hpp"
 
+#include <QtCore/QtDebug>
+#include <QtCore/QtMath>
 #include <QtDBus/QDBusMetaType>
-#include <QtMath>
 
 
 QDBusArgument& operator<<(QDBusArgument& arg, const Color& color)
@@ -36,6 +38,9 @@ const QDBusArgument& operator>>(const QDBusArgument& arg, Color& color)
     arg.beginStructure();
     arg >> color.red >> color.green >> color.blue;
     arg.endStructure();
+    nqDebug() << "rgb(" << color.red
+              << ", " << color.green
+              << ", " << color.blue << ")";
 
     return arg;
 }
@@ -45,6 +50,9 @@ DBusLedInterface::DBusLedInterface(const QString& obj)
     : DBusIndexableInterface("Led", obj)
     , m_colorMax_(static_cast<quint32>(qPow(2, getBitsNumber() * 8)) - 1)
 {
+    nqDebug() << "colors are " << getBitsNumber()
+              << "-bits color-coded: let [0;"
+              << m_colorMax_ << "]";
     qDBusRegisterMetaType<Color>();
 }
 

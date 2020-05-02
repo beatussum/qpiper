@@ -18,11 +18,13 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
 
 set(QPIPER_UI)
 set(QPIPER_HPP
+    core/core.hpp
     dbus/DBusAbstractInterface.hpp
     dbus/DBusIndexableInterface.hpp
     dbus/DBusLedInterface.hpp)
 set(QPIPER_CPP
     main.cpp
+    core/core.cpp
     dbus/DBusAbstractInterface.cpp
     dbus/DBusIndexableInterface.cpp
     dbus/DBusLedInterface.cpp)

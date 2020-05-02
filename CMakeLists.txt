@@ -24,9 +24,9 @@ project(QPiper
 
 option(WITH_DOCS "Enable building of documentation" OFF)
 
-macro(add_gcc_cxx_flags _flags)
+macro(add_gcc_cxx_flags flags)
     if(CMAKE_COMPILER_IS_GNUCXX)
-         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_flags}")
+         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flags}")
     endif()
 endmacro()
 
@@ -48,10 +48,10 @@ add_gcc_cxx_flags("-Wfloat-equal -Wcast-qual -Wcast-align -Wconversion")
 add_gcc_cxx_flags("-Wsign-compare -Wunreachable-code -Wmissing-braces")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(BUILD_TYPE_DEBUG TRUE)
     add_gcc_cxx_flags("-O0")
     add_gcc_cxx_flags("-Wpadded")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_compile_definitions(QT_NO_DEBUG_OUTPUT)
     add_gcc_cxx_flags("-O2")
 endif()
 

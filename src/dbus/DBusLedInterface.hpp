@@ -84,7 +84,7 @@ private:
 
     quint32 getColorDepth_() const;
 private:
-    quint32 m_colorMax_;
+    const quint32 m_colorMax_;
 };
 
 
