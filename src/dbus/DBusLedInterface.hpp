@@ -22,6 +22,9 @@
 #include "dbus/DBusIndexableInterface.hpp"
 
 
+class QDBusArgument;
+
+
 struct Color
 {
     quint32 red;
@@ -34,7 +37,7 @@ QDBusArgument& operator<<(QDBusArgument& arg, const Color& color);
 const QDBusArgument& operator>>(const QDBusArgument& arg, Color& color);
 
 
-class DBusLedInterface : public DBusIndexableInterface
+class DBusLedInterface final : public DBusIndexableInterface
 {
     Q_OBJECT
     Q_PROPERTY(quint32 Mode READ getMode_ WRITE setMode_)

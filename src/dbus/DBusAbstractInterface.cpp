@@ -19,6 +19,7 @@
 #include "dbus/DBusAbstractInterface.hpp"
 
 #include <QtCore/QtDebug>
+#include <QtDBus/QDBusReply>
 
 
 void DBusPropertyException::checkInRange(const char* name, quint32 value, quint32 lim)
@@ -32,11 +33,20 @@ void DBusPropertyException::checkInRange(const char* name, quint32 value, quint3
 
 QString DBusAbstractInterface::m_serviceName_;
 
+DBusAbstractInterface::DBusAbstractInterface(const QString& inter, const QString& obj)
+    : QDBusInterface(m_serviceName_, obj,
+                     m_serviceName_ + '.' + inter,
+                     QDBusConnection::systemBus())
+{
+    qInfo() << "creating a new interface" << interface() << "for the object"
+            << path();
+}
+
 DBusAbstractInterface::~DBusAbstractInterface() {}
 
 void DBusAbstractInterface::setServiceName(const QString& name) noexcept
 {
-    qDebug() << "service name set to" << name;
+    qInfo() << "service name set to" << name;
     m_serviceName_ = name;
 }
 

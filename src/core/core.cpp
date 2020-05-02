@@ -21,31 +21,45 @@
 #include <QString>
 #include <iostream>
 
+
+const bool isColoredOutput = (qgetenv("QPIPER_COLOR") != "none");
+
 void qPiperMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
     using namespace AnsiColor;
 
-    std::string fileName = context.file;
-    fileName = fileName.substr(fileName.find("src"));
+    QString fileName = context.file;
+    fileName = fileName.mid(fileName.indexOf("src"));
+    QString tmp;
     switch (type) {
         case QtDebugMsg:
-            // prints "%1DEBUG%2 (%3%4%5:%6%7%8): %9%10%11\n"
-            std::cerr << fg::b << bg::brcyan << "DEBUG" << rst << "\u00A0("
-                      << fg::bred << std::move(fileName) << rst << ':'
-                      << fg::bgreen << context.line << rst << "): "
-                      << fg::b << msg.toLocal8Bit().data() << rst << '\n';
+            tmp = isColoredOutput
+                  ? QString("%1%2DEBUG%3\u00A0(%4{fileName}%3:%5{line}%3): %1{msg}%3\n")
+                    .arg(fg::b).arg(bg::brcyan).arg(rst).arg(fg::bred)
+                    .arg(fg::bgreen)
+                  : QString("DEBUG\u00A0({fileName}:{line}): {msg}\n");
+
+            std::cerr << tmp.replace("{fileName}", std::move(fileName))
+                         .replace("{line}", QString::number(context.line))
+                         .replace("{msg}", msg).toStdString();
             break;
         case QtWarningMsg:
-            // prints "%1%2!! WARNING !!%3 (%4%5%6): %7%8%9\n"
-            std::cerr << fg::bred << bg::bryellow << "!!\u00A0WARNING\u00A0!!"
-                      << rst << "\u00A0(" << fg::bgreen << context.function
-                      << rst << "): " << fg::b << msg.toLocal8Bit().data()
-                      << rst << '\n';
+            tmp = isColoredOutput
+                  ? QString("%1%2!!\u00A0WARNING\u00A0!!%3\u00A0(%4{function}%3): %5{msg}%3\n")
+                    .arg(fg::bred).arg(bg::bryellow).arg(rst).arg(fg::bred)
+                    .arg(fg::b)
+                  : QString("!!\u00A0WARNING\u00A0!!\u00A0({function}): {msg}\n");
+
+            std::cerr << tmp.replace("{function}", context.function)
+                         .replace("{msg}", msg).toStdString();
             break;
         default:
-            // prints "%1%2INFO%3: %4%5%6\n"
-            std::cout << fg::b << bg::brblue << "INFO" << rst << ": " << fg::b
-                      << msg.toLocal8Bit().data() << rst << '\n';
+            tmp = isColoredOutput
+                  ? QString("%1%2INFO%3: %1{msg}%3\n")
+                    .arg(fg::b).arg(bg::brblue).arg(rst)
+                  : QString("INFO: {msg}\n");
+
+            std::cout << tmp.replace("{msg}", msg).toStdString();
             break;
     }
 }

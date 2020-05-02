@@ -23,6 +23,9 @@
 
 
 #define nqDebug() qDebug().nospace()
+#define nqInfo() qInfo().nospace()
+
+extern const bool isColoredOutput;
 
 namespace AnsiColor
 {

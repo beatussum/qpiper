@@ -50,9 +50,10 @@ DBusLedInterface::DBusLedInterface(const QString& obj)
     : DBusIndexableInterface("Led", obj)
     , m_colorMax_(static_cast<quint32>(qPow(2, getBitsNumber() * 8)) - 1)
 {
-    nqDebug() << "colors are " << getBitsNumber()
-              << "-bits color-coded: let [0;"
-              << m_colorMax_ << "]";
+    nqInfo() << "colors are " << getBitsNumber()
+             << "-bits color-coded: let [0;"
+             << m_colorMax_ << "]";
+
     qDBusRegisterMetaType<Color>();
 }
 

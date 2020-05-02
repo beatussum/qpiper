@@ -20,7 +20,6 @@
 #define QPIPER_DBUS_ABSTRACT_INTERFACE_HPP
 
 #include <QtDBus/QDBusInterface>
-#include <QtDBus/QDBusReply>
 
 
 /**
@@ -98,15 +97,11 @@ public:
     /**
      * @brief Construct a new DBusAbstractInterface object
      *
-     * @param interface the interface name without the root prefix: e.g.
-     *                  _button_ not _org.example.button_
-     * @param obj       the DBusAbstractInterface object
+     * @param inter the interface name without the root prefix: e.g.
+     *              _button_ not _org.example.button_
+     * @param obj   the DBusAbstractInterface object
      */
-    explicit DBusAbstractInterface(const QString& interface, const QString& obj)
-        : QDBusInterface(m_serviceName_, obj,
-                         m_serviceName_ + '.' + interface,
-                         QDBusConnection::systemBus())
-    {}
+    explicit DBusAbstractInterface(const QString& inter, const QString& obj);
 
     virtual ~DBusAbstractInterface() = 0;
 
