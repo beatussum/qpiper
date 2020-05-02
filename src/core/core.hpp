@@ -19,30 +19,37 @@
 #ifndef QPIPER_CORE_HPP
 #define QPIPER_CORE_HPP
 
-#include <QtGlobal>
+#include <QtCore/QLatin1String>
 
 
 #define nqDebug() qDebug().nospace()
 #define nqInfo() qInfo().nospace()
 
+#define qStrL(str) QStringLiteral(str)
+#define qByteL(ba) QByteArrayLiteral(ba)
+
+
 extern const bool isColoredOutput;
+
+QLatin1String operator "" _qls(const char* value, const std::size_t size);
+bool qPiperGetEnv(const char* name, const QByteArray value);
 
 namespace AnsiColor
 {
-    constexpr char rst[] = "\u001B[0m";
+    inline const QLatin1String rst = "\u001B[0m"_qls;
 
     namespace fg
     {
-        constexpr char b[] = "\u001B[1m";
-        constexpr char bred[] = "\u001B[1;31m";
-        constexpr char bgreen[] = "\u001B[1;32m";
+        inline const QLatin1String b = "\u001B[1m"_qls;
+        inline const QLatin1String bred = "\u001B[1;31m"_qls;
+        inline const QLatin1String bgreen = "\u001B[1;32m"_qls;
     }
 
     namespace bg
     {
-        constexpr char bryellow[] = "\u001B[103m";
-        constexpr char brblue[] = "\u001B[104m";
-        constexpr char brcyan[] = "\u001B[106m";
+        inline const QLatin1String bryellow = "\u001B[103m"_qls;
+        inline const QLatin1String brblue = "\u001B[104m"_qls;
+        inline const QLatin1String brcyan = "\u001B[106m"_qls;
     }
 }
 

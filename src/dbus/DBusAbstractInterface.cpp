@@ -25,9 +25,10 @@
 void DBusPropertyException::checkInRange(const char* name, quint32 value, quint32 lim)
 {
     if (value > lim)
-        throw DBusPropertyException(name, QString("%1 not in the range [0;%2]")
-                                          .arg(value)
-                                          .arg(lim));
+        throw DBusPropertyException(name, QString::number(value)
+                                          % qStrL(" not in the range [0;")
+                                          % QString::number(lim)
+                                          % ']');
 }
 
 
@@ -35,7 +36,7 @@ QString DBusAbstractInterface::m_serviceName_;
 
 DBusAbstractInterface::DBusAbstractInterface(const QString& inter, const QString& obj)
     : QDBusInterface(m_serviceName_, obj,
-                     m_serviceName_ + '.' + inter,
+                     m_serviceName_ % '.' % inter,
                      QDBusConnection::systemBus())
 {
     qInfo() << "creating a new interface" << interface() << "for the object"

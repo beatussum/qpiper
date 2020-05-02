@@ -19,6 +19,9 @@
 #ifndef QPIPER_DBUS_ABSTRACT_INTERFACE_HPP
 #define QPIPER_DBUS_ABSTRACT_INTERFACE_HPP
 
+#include "core/core.hpp"
+
+#include <QtCore/QStringBuilder>
 #include <QtDBus/QDBusInterface>
 
 
@@ -30,10 +33,9 @@ class DBusCallException final : public std::runtime_error
 {
 public:
     explicit DBusCallException(const QDBusError& error)
-        : std::runtime_error(QString("%1: %2")
-                             .arg(error.name())
-                             .arg(error.message())
-                             .toStdString())
+        : std::runtime_error((error.name() % qStrL(": ")
+                              % error.message() % qStrL("."))
+                             .toLatin1())
     {}
 };
 
@@ -52,8 +54,8 @@ public:
      * @param name   the name of the property
      */
     explicit DBusPropertyException(const QString& name)
-        : std::runtime_error(QString("Unable to get or set the property %1.")
-                             .arg(name).toStdString())
+        : std::runtime_error((qStrL("Unable to get or set the property ")
+                             % name % '.').toLatin1())
     {}
 
     /**
@@ -64,8 +66,7 @@ public:
      * @param desc a description about the exception
      */
     explicit DBusPropertyException(const char* name, const QString& desc)
-        : DBusPropertyException(QString("%1: %2")
-                                .arg(name).arg(desc))
+        : DBusPropertyException(name % qStrL(": ") % desc)
     {}
 
     /**

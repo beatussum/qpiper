@@ -16,7 +16,6 @@
  */
 
 
-#include "core/core.hpp"
 #include "dbus/DBusLedInterface.hpp"
 
 #include <QtCore/QtDebug>
