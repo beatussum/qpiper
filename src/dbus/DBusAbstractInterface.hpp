@@ -34,7 +34,7 @@ class DBusCallException final : public std::runtime_error
 public:
     explicit DBusCallException(const QDBusError& error)
         : std::runtime_error((error.name() % qStrL(": ")
-                              % error.message() % qStrL("."))
+                              % error.message() % '.')
                              .toLatin1())
     {}
 };

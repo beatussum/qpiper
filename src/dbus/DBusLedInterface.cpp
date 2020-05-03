@@ -39,7 +39,7 @@ const QDBusArgument& operator>>(const QDBusArgument& arg, Color& color)
     arg.endStructure();
     nqDebug() << "rgb(" << color.red
               << ", " << color.green
-              << ", " << color.blue << ")";
+              << ", " << color.blue << ')';
 
     return arg;
 }
@@ -51,7 +51,7 @@ DBusLedInterface::DBusLedInterface(const QString& obj)
 {
     nqInfo() << "colors are " << getBitsNumber()
              << "-bits color-coded: let [0;"
-             << m_colorMax_ << "]";
+             << m_colorMax_ << ']';
 
     qDBusRegisterMetaType<Color>();
 }
