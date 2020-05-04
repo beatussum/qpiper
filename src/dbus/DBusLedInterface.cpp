@@ -83,7 +83,7 @@ QString DBusLedInterface::getColorDepthDescription(const ColorDepths depth)
     }
 }
 
-constexpr quint32 DBusLedInterface::getBitsNumber() const
+quint32 DBusLedInterface::getBitsNumber() const
 {
     switch (getColorDepth()) {
         case ZeroBits:
