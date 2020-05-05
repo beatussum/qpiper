@@ -21,13 +21,15 @@ set(QPIPER_HPP
     core/core.hpp
     dbus/DBusAbstractInterface.hpp
     dbus/DBusIndexableInterface.hpp
-    dbus/DBusLedInterface.hpp)
+    dbus/DBusLedInterface.hpp
+    dbus/DBusButtonInterface.hpp)
 set(QPIPER_CPP
     main.cpp
     core/core.cpp
     dbus/DBusAbstractInterface.cpp
     dbus/DBusIndexableInterface.cpp
-    dbus/DBusLedInterface.cpp)
+    dbus/DBusLedInterface.cpp
+    dbus/DBusButtonInterface.cpp)
 
 set(DOCS_DIR "${CMAKE_BINARY_DIR}/docs" CACHE PATH
     "The path where the documention is built")
