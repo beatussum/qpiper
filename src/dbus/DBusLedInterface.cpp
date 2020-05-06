@@ -118,18 +118,16 @@ void DBusLedInterface::setMode_(const quint32 mode)
 Color DBusLedInterface::getColor() const
 {
     auto ret = getPropertyAndCheck<Color>("Color");
-    DBusPropertyException::checkInRange("Brightness", ret.red, m_colorMax_);
-    DBusPropertyException::checkInRange("Brightness", ret.green, m_colorMax_);
-    DBusPropertyException::checkInRange("Brightness", ret.blue, m_colorMax_);
+    DBusException::checkInRange("Brightness", m_colorMax_,
+                                ret.red, ret.green, ret.blue);
 
     return ret;
 }
 
 void DBusLedInterface::setColor(const Color color)
 {
-    DBusPropertyException::checkInRange("Brightness", color.red, m_colorMax_);
-    DBusPropertyException::checkInRange("Brightness", color.green, m_colorMax_);
-    DBusPropertyException::checkInRange("Brightness", color.blue, m_colorMax_);
+    DBusException::checkInRange("Brightness", m_colorMax_,
+                                color.red, color.green, color.blue);
     setPropertyAndCheck("Color", color);
 }
 
@@ -146,27 +144,27 @@ quint32 DBusLedInterface::getColorDepth_() const
 quint32 DBusLedInterface::getEffectDuration() const
 {
     auto ret = getPropertyAndCheck<quint32>("EffectDuration");
-    DBusPropertyException::checkInRange("Brightness", ret, 10'000);
+    DBusException::checkInRange("Brightness", 10'000u, ret);
 
     return ret;
 }
 
 void DBusLedInterface::setEffectDuration(const quint32 effect)
 {
-    DBusPropertyException::checkInRange("Brightness", effect, 10'000);
+    DBusException::checkInRange("Brightness", 10'000u, effect);
     setPropertyAndCheck<quint32>("EffectDuration", effect);
 }
 
 quint32 DBusLedInterface::getBrightness() const
 {
     auto ret = getPropertyAndCheck<quint32>("Brightness");
-    DBusPropertyException::checkInRange("Brightness", ret, 255);
+    DBusException::checkInRange("Brightness", 255u, ret);
 
     return ret;
 }
 
 void DBusLedInterface::setBrightness(const quint32 brightness)
 {
-    DBusPropertyException::checkInRange("Brightness", brightness, 255);
+    DBusException::checkInRange("Brightness", 255u, brightness);
     setPropertyAndCheck<quint32>("Brightness", brightness);
 }

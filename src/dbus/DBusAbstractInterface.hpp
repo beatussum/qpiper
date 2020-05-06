@@ -26,38 +26,12 @@
 
 
 /**
- * @class DBusCallException dbus/DBusAbstractInterface.hpp
- * @brief An exception in case of a DBus error when calling a method
- */
-class DBusCallException final : public std::runtime_error
-{
-public:
-    explicit DBusCallException(const QDBusError& error)
-        : std::runtime_error((error.name() % qStrL(": ")
-                              % error.message() % '.')
-                             .toLatin1())
-    {}
-};
-
-
-/**
  * @class DBusPropertyException dbus/DBusAbstractInterface.hpp
  * @brief An exception in case of property error
  */
-class DBusPropertyException final : public std::runtime_error
+class DBusException final : public std::runtime_error
 {
 public:
-    /**
-     * @brief Construct a new DBusPropertyException object with a name and
-     * a possible custom suffix
-     *
-     * @param name   the name of the property
-     */
-    explicit DBusPropertyException(const QString& name)
-        : std::runtime_error((qStrL("Unable to get or set the property ")
-                             % name % '.').toLatin1())
-    {}
-
     /**
      * @brief Construct a new DBusPropertyException object with a name and
      * a description
@@ -65,21 +39,51 @@ public:
      * @param name the name of the property
      * @param desc a description about the exception
      */
-    explicit DBusPropertyException(const char* name, const QString& desc)
-        : DBusPropertyException(name % qStrL(": ") % desc)
+    explicit DBusException(const char *const name, const QString& desc)
+        : std::runtime_error((qStrL("Unable to get or set the property ")
+                              % name % ": " % desc).toLatin1())
+    {}
+
+    /**
+     * @brief Construct a new DBusException object with the name of a
+     * property and a QDBusError
+     *
+     * @param name  the name of the property
+     * @param error the DBus error
+     */
+    explicit DBusException(const char *const name, const QDBusError& error)
+        : DBusException(name, "\n\t" % error.name() % ": " % error.message())
     {}
 
     /**
      * @brief Check if the value of a property is within a given range
      *
-     * @param name  the name of the property
-     * @param value the value of the property
-     * @param lim   maximum
+     * @param name   the name of the property
+     * @param lim    maximum
+     * @param params a list of parameters to be tested
      *
-     * @throws DBusPropertyException if the value is higher than value
+     * @throw DBusException if at least one of \p params is higher
+     * than \p lim
      */
-    static void checkInRange(const char* name, quint32 value, quint32 lim);
+    template<typename T, typename... U>
+    static void checkInRange(const char *const name, T lim, T first, U... params);
 };
+
+template<typename T, typename... U>
+void DBusException::checkInRange(const char *const name, T lim, T first, U... params)
+{
+    static_assert(are_same<T, T, U...> && is_comparable<T>::value,
+                  "the variadic parameters must be of the same "
+                  "type and comparable");
+
+    if (first > lim) {
+        throw DBusException(name, QString::number(first)
+                                  % qStrL(" not in the range [0;")
+                                  % QString::number(lim) % ']');
+    } else if constexpr (sizeof...(params) > 0) {
+        DBusException::checkInRange(name, lim, params...);
+    }
+}
 
 
 /**
@@ -94,7 +98,16 @@ public:
  */
 class DBusAbstractInterface : public QDBusInterface
 {
+private:
+    using QDBusInterface::property;
 public:
+    /**
+     * @brief Set the name of the service
+     *
+     * @param name the name of the service
+     */
+    static void setServiceName(const QString& name) noexcept;
+protected:
     /**
      * @brief Construct a new DBusAbstractInterface object
      *
@@ -107,20 +120,13 @@ public:
     virtual ~DBusAbstractInterface() = 0;
 
     /**
-     * @brief Set the name of the service
-     *
-     * @param name the name of the service
-     */
-    static void setServiceName(const QString& name) noexcept;
-
-    /**
      * @brief Call a void method
      *
      * @param method the name of the method
      *
-     * @throws DBusCallException if an error has occured
+     * @throw DBusException if an error has occured
      */
-    void callAndCheck(const QString& method);
+    void callAndCheck(const char *const method);
 
     /**
      * @brief get the value of a DBus property
@@ -129,10 +135,10 @@ public:
      * @param  name the name of the property
      *
      * @return a valid QVariant
-     * @throws DBusPropertyException if the QVariant is invalid
+     * @throw DBusException if the QVariant is invalid
      */
     template<class T>
-    T getPropertyAndCheck(const char* name) const;
+    T getPropertyAndCheck(const char *const name) const;
 
     /**
      * @brief set a DBus property
@@ -141,31 +147,32 @@ public:
      * @param  name  the name of the property
      * @param  value the desired value
      *
-     * @throws DBusPropertyException if the QVariant is invalid
+     * @throw DBusException if the QVariant is invalid
      */
     template<class T>
-    void setPropertyAndCheck(const char* name, T value);
+    void setPropertyAndCheck(const char *const name, T value);
 private:
     static QString m_serviceName_;
 };
 
 template<class T>
-T DBusAbstractInterface::getPropertyAndCheck(const char* name) const
+T DBusAbstractInterface::getPropertyAndCheck(const char *const name) const
 {
-    QVariant ret = property(name);
+    const QVariant ret = property(name);
+    const QDBusError error = lastError();
 
-    if (!ret.isValid()) {
-        throw DBusPropertyException(name, "the QVariant is not valid");
+    if (error.isValid()) {
+        throw DBusException(name, error);
     } else {
         return qvariant_cast<T>(ret);
     }
 }
 
 template<class T>
-void DBusAbstractInterface::setPropertyAndCheck(const char* name, T value)
+void DBusAbstractInterface::setPropertyAndCheck(const char *const name, T value)
 {
     if (!setProperty(name, QVariant::fromValue(value)))
-        throw DBusPropertyException(name);
+        throw DBusException(name, lastError());
 }
 
 

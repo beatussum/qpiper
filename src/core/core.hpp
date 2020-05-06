@@ -39,6 +39,29 @@
 template<class T>
 using Shared = std::shared_ptr<T>;
 
+/**
+ * @brief plural of `std::is_same::value`
+ */
+template <typename T, typename... U>
+constexpr bool are_same = std::conjunction_v<std::is_same<T, U>...>;
+
+/**
+ * @struct is_comparable core/core.hpp
+ * @brief The type used as a compile-time boolean with true value if \p T
+ * is comparable
+ */
+template<typename T, typename = void>
+struct is_comparable : std::false_type {};
+
+template<typename T>
+struct is_comparable<T,
+        typename std::enable_if<
+            true,
+            decltype(std::declval<T>() > std::declval<T>(), static_cast<void>(0))
+        >::type>
+    : std::true_type
+{};
+
 
 /**
  * @brief true if the output should be colored
@@ -113,7 +136,7 @@ void qPiperMessageHandler(QtMsgType type, const QMessageLogContext& context, con
  * @brief Get the name of an enumeration constant
  *
  * @tparam T     an enumeration type
- * @value  value the value of the constant
+ * @param  value the value of the constant
  *
  * @return the name of the constant
  */

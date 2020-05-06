@@ -22,15 +22,9 @@
 #include <QtDBus/QDBusReply>
 
 
-void DBusPropertyException::checkInRange(const char* name, quint32 value, quint32 lim)
-{
-    if (value > lim)
-        throw DBusPropertyException(name, QString::number(value)
-                                          % qStrL(" not in the range [0;")
-                                          % QString::number(lim)
-                                          % ']');
-}
-
+/*#####################################*/
+/*        DBusAbstractInterface        */
+/*#####################################*/
 
 QString DBusAbstractInterface::m_serviceName_;
 
@@ -39,8 +33,8 @@ DBusAbstractInterface::DBusAbstractInterface(const QString& inter, const QString
                      m_serviceName_ % '.' % inter,
                      QDBusConnection::systemBus())
 {
-    qInfo() << "creating a new interface" << interface() << "for the object"
-            << path();
+    qInfo() << "creating a new interface" << interface()
+            << "for the object" << path();
 }
 
 DBusAbstractInterface::~DBusAbstractInterface() {}
@@ -51,10 +45,10 @@ void DBusAbstractInterface::setServiceName(const QString& name) noexcept
     m_serviceName_ = name;
 }
 
-void DBusAbstractInterface::callAndCheck(const QString& method)
+void DBusAbstractInterface::callAndCheck(const char *const method)
 {
     const QDBusReply<void> r = call(method);
 
     if (!r.isValid())
-        throw DBusCallException(r.error());
+        throw DBusException(method, r.error());
 }
