@@ -18,15 +18,22 @@
 
 #include "dbus/DBusButtonInterface.hpp"
 
+#include <QtCore/QtDebug>
 #include <QtDBus/QDBusArgument>
 #include <QtDBus/QDBusMetaType>
 
 
-QDBusArgument& operator<<(QDBusArgument& arg, const Macro& macro)
+/*#####################################*/
+/*    marshallers and demarshallers    */
+/*#####################################*/
+
+QDBusArgument& operator<<(QDBusArgument& arg, const Macro macro)
 {
     arg.beginStructure();
     arg << static_cast<quint32>(macro.event) << macro.value;
     arg.endStructure();
+
+    qDebug() << "marshalling" << macro;
 
     return arg;
 }
@@ -38,44 +45,9 @@ const QDBusArgument& operator>>(const QDBusArgument& arg, Macro& macro)
     arg >> macro.value;
     arg.endStructure();
 
+    qDebug() << "demarshalling" << macro;
+
     return arg;
-}
-
-
-quint32 Mapping::getButton() const
-{
-    if (getActionType() == ActionType::Button)
-        return qvariant_cast<quint32>(m_var_.variant());
-}
-
-void Mapping::setButton(const quint32 button)
-{
-    setActionType(ActionType::Button);
-    m_var_ = QDBusVariant(button);
-}
-
-Mapping::SpecialButton Mapping::getSpecial() const
-{
-    if (getActionType() == ActionType::Special)
-        return qvariant_cast<SpecialButton>(m_var_.variant());
-}
-
-void Mapping::setSpecial(const SpecialButton special)
-{
-    setActionType(ActionType::Special);
-    m_var_ = QDBusVariant(static_cast<quint32>(special));
-}
-
-QVector<Macro> Mapping::getMacro() const
-{
-    if (getActionType() == ActionType::Macro)
-        return qdbus_cast<QVector<Macro>>(m_var_.variant());
-}
-
-void Mapping::setMacro(const QVector<class Macro>& macro)
-{
-    setActionType(ActionType::Macro);
-    m_var_.setVariant(QVariant::fromValue(macro));
 }
 
 QDBusArgument& operator<<(QDBusArgument& arg, const Mapping& mapping)
@@ -83,6 +55,8 @@ QDBusArgument& operator<<(QDBusArgument& arg, const Mapping& mapping)
     arg.beginStructure();
     arg << static_cast<quint32>(mapping.m_type_) << mapping.m_var_;
     arg.endStructure();
+
+    qDebug() << mapping.m_type_;
 
     return arg;
 }
@@ -92,12 +66,162 @@ const QDBusArgument& operator>>(const QDBusArgument& arg, Mapping& mapping)
     arg.beginStructure();
     mapping.m_type_ = static_cast<Mapping::ActionType>(qdbus_cast<quint32>(arg));
     arg >> mapping.m_var_;
-
     arg.endStructure();
+
+    qDebug() << mapping.m_type_;
 
     return arg;
 }
 
+
+/*#####################################*/
+/*           debug operators           */
+/*#####################################*/
+
+QDebug operator<<(QDebug debug, const Macro macro)
+{
+    debug.nospace() << "the macro of type `"
+                    << enumToString(macro.event)
+                    << "` having the value "
+                    << macro.value;
+
+    return debug.maybeSpace();
+}
+
+QDebug operator<<(QDebug debug, const QVector<Macro>& macros) {
+    using namespace AnsiColor;
+
+    debug.nospace() << '\n';
+
+    for (const auto i : macros) {
+        debug.noquote() << "\t\t";
+
+        if (isColoredOutput) {
+            debug << fg::bgreen << '-' << rst << fg::b;
+        } else {
+            debug << '-';
+        }
+
+        debug << ' ' << i << '\n';
+    }
+
+    return debug.maybeSpace();
+}
+
+QDebug operator<<(QDebug debug, const Mapping::ActionType action)
+{
+    debug << "the mapping is of the"
+          << enumToString(action)
+          << "type";
+
+    return debug.maybeSpace();
+}
+
+QString actionsToStr(const QVector<Mapping::ActionType>& actions)
+{
+    QString ret;
+
+    for (int i = 0; i < actions.size(); ++i) {
+        ret += enumToString(actions.at(i));
+
+        if ((i + 1) < actions.size())
+            ret += ", ";
+    }
+
+    return ret;
+}
+
+QDebug operator<<(QDebug debug, const QVector<Mapping::ActionType>& vec)
+{
+    debug.space() << "the mouse supports:" << actionsToStr(vec);
+
+    return debug.maybeSpace();
+}
+
+
+/*#####################################*/
+/*               Mapping               */
+/*#####################################*/
+
+template<class T>
+T Mapping::getAndCheckVariant_(const ActionType check) const
+{
+    const auto currentAction = getActionType();
+
+    if (currentAction != check) {
+        throw BadActionType(enumToString(currentAction),
+                            enumToString(check));
+    } else {
+        return qvariant_cast<T>(m_var_.variant());
+    }
+}
+
+void Mapping::setActionType_(const ActionType action)
+{
+    if (m_button_ == nullptr) {
+        throw BadActionType();
+    } else if (!m_button_->m_supportedActionTypes_.contains(action)) {
+        throw BadActionType(enumToString(action),
+                            m_button_->m_supportedActionTypes_);
+    } else {
+        qDebug() << "setting action type to" << enumToString(action);
+        m_type_ = action;
+    }
+}
+
+quint32 Mapping::getButton() const
+{
+    const auto ret = getAndCheckVariant_<quint32>(ActionType::Button);
+    nqInfo() << "this button is mapped to the button n°\u00A0" << ret;
+
+    return ret;
+}
+
+void Mapping::setButton(const quint32 button)
+{
+    setActionType_(ActionType::Button);
+    m_var_ = QDBusVariant(button);
+}
+
+Mapping::SpecialButton Mapping::getSpecial() const
+{
+    const auto ret = getAndCheckVariant_<SpecialButton>(ActionType::Special);
+    nqInfo() << "this button is mapped to the special button `"
+             << enumToString(ret) << '`';
+
+    return ret;
+}
+
+void Mapping::setSpecial(const SpecialButton special)
+{
+    setActionType_(ActionType::Special);
+    m_var_ = QDBusVariant(static_cast<quint32>(special));
+}
+
+QVector<Macro> Mapping::getMacros() const
+{
+    const auto currentAction = getActionType();
+
+    if (currentAction != ActionType::Macro) {
+        throw BadActionType(enumToString(currentAction),
+                            enumToString(ActionType::Macro));
+    } else {
+        const auto& ret = qdbus_cast<QVector<Macro>>(m_var_.variant());
+        qInfo() << "\n\n\tthis button is mapped to the macros:" << ret;
+        return ret;
+    }
+}
+
+void Mapping::setMacros(const QVector<class Macro>& macros)
+{
+    setActionType_(ActionType::Macro);
+    m_var_.setVariant(QVariant::fromValue(macros));
+}
+
+
+/*#####################################*/
+/*         DBusButtonInterface         */
+/*#####################################*/
 
 DBusButtonInterface::DBusButtonInterface(const QString& obj)
     : DBusIndexableInterface("Button", obj)
@@ -105,27 +229,26 @@ DBusButtonInterface::DBusButtonInterface(const QString& obj)
     qDBusRegisterMetaType<Macro>();
     qDBusRegisterMetaType<QVector<Macro>>();
     qDBusRegisterMetaType<Mapping>();
+
+    for (const auto i : getSupportedActionTypes_())
+        m_supportedActionTypes_.append(static_cast<Mapping::ActionType>(i));
+
+    qInfo() << m_supportedActionTypes_;
 }
 
 QVector<quint32> DBusButtonInterface::getSupportedActionTypes_() const
 {
-    return getPropertyAndCheck<QVector<quint32>>("Mapping");
-}
-
-QVector<Mapping::ActionType> DBusButtonInterface::getSupportedActionTypes() const
-{
-    QVector<Mapping::ActionType> ret;
-
-    const QVector<quint32>& vec = getSupportedActionTypes_();
-    for (const auto i : vec)
-        ret.append(static_cast<Mapping::ActionType>(i));
-
-    return ret;
+    return getPropertyAndCheck<QVector<quint32>>("ActionTypes");
 }
 
 Mapping DBusButtonInterface::getMapping() const
 {
-    return getPropertyAndCheck<Mapping>("Mapping");
+    auto ret = getPropertyAndCheck<Mapping>("Mapping");
+
+    qDebug() << "linking this button to the `Mapping` instance";
+    ret.m_button_ = shared_from_this();
+
+    return ret;
 }
 
 void DBusButtonInterface::setMapping(const Mapping& mapping)

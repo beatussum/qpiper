@@ -19,41 +19,52 @@
 #ifndef QPIPER_DBUS_BUTTON_INTERFACE_HPP
 #define QPIPER_DBUS_BUTTON_INTERFACE_HPP
 
+#include "core/core.hpp"
 #include "dbus/DBusIndexableInterface.hpp"
 
 
 class QDBusArgument;
+class DBusButtonInterface;
 
 
 class Macro
 {
+    Q_GADGET
+
 public:
-    enum KeyEvent : quint32 {
-        None,
-        Release,
+    enum KeyEvent : quint8 {
+        Release = 1,
         Press,
         Wait
     };
+    Q_ENUM(KeyEvent)
 public:
     KeyEvent event;
     quint32 value;
 };
-
 Q_DECLARE_METATYPE(Macro)
-QDBusArgument& operator<<(QDBusArgument& arg, const Macro& macro);
-const QDBusArgument& operator>>(const QDBusArgument& arg, Macro& macro);
 
 
 class Mapping
 {
+    Q_GADGET
+
+
+    // to allow construction from QVariant
+    friend struct QtMetaTypePrivate::QMetaTypeFunctionHelper<Mapping, true>;
+    friend struct QtPrivate::QVariantValueHelper<Mapping>;
+
+    friend class DBusButtonInterface;
+    friend QDBusArgument& operator<<(QDBusArgument& arg, const Mapping& mapping);
+    friend const QDBusArgument& operator>>(const QDBusArgument& arg, Mapping& mapping);
 public:
-    enum class ActionType : quint32 {
-        None,
-        Button,
+    enum class ActionType : quint16 {
+        Button = 1,
         Special,
         Macro = 4,
         Unknown = 1000
     };
+    Q_ENUM(ActionType)
 
     enum class SpecialButton : quint32 {
         Unknown = (1 << 30),
@@ -76,6 +87,14 @@ public:
         SecondMode,
         BatteryLevel
     };
+    Q_ENUM(SpecialButton)
+private:
+    Mapping() = default;
+
+    template<class T>
+    T getAndCheckVariant_(const ActionType check) const;
+
+    void setActionType_(const ActionType action);
 public:
     ActionType getActionType() const { return m_type_; }
 
@@ -85,39 +104,71 @@ public:
     SpecialButton getSpecial() const;
     void setSpecial(const SpecialButton special);
 
-    QVector<Macro> getMacro() const;
-    void setMacro(const QVector<Macro>& macro);
-
-    friend QDBusArgument& operator<<(QDBusArgument& arg, const Mapping& mapping);
-    friend const QDBusArgument& operator>>(const QDBusArgument& arg, Mapping& mapping);
-private:
-    void setActionType(const ActionType action) { m_type_ = action; }
+    QVector<Macro> getMacros() const;
+    void setMacros(const QVector<Macro>& macros);
 private:
     ActionType m_type_;
     QDBusVariant m_var_;
+    Shared<const DBusButtonInterface> m_button_;
 };
-
 Q_DECLARE_METATYPE(Mapping)
 Q_DECLARE_METATYPE(Mapping::SpecialButton)
 
 
-class DBusButtonInterface : public DBusIndexableInterface
+class DBusButtonInterface
+        : public DBusIndexableInterface
+        , public std::enable_shared_from_this<DBusButtonInterface>
 {
     Q_OBJECT
     Q_PROPERTY(QVector<quint32> ActionTypes
                READ getSupportedActionTypes_)
     Q_PROPERTY(Mapping Mapping READ getMapping WRITE setMapping)
 
+    friend class Mapping;
+private:
+    QVector<quint32> getSupportedActionTypes_() const;
 public:
     explicit DBusButtonInterface(const QString& obj);
-
-    QVector<Mapping::ActionType> getSupportedActionTypes() const;
 
     Mapping getMapping() const;
     void setMapping(const Mapping& mapping);
 private:
-    QVector<quint32> getSupportedActionTypes_() const;
+    QVector<Mapping::ActionType> m_supportedActionTypes_;
 };
+
+
+QString actionsToStr(const QVector<Mapping::ActionType>& actions);
+
+class BadActionType final : public std::runtime_error
+{
+public:
+    BadActionType()
+        : std::runtime_error("No button is linked to this instance")
+    {}
+
+    BadActionType(const char *const is, const QString& suffix)
+        : std::runtime_error((qStrL("The action type is `") % is
+                              % "` " % suffix).toLatin1())
+    {}
+
+    BadActionType(const char *const is, const char *const shouldBe)
+        : BadActionType(is, qStrL("but should be `") % shouldBe % '`')
+    {}
+
+    BadActionType(const char *const is, const QVector<Mapping::ActionType>& actions)
+        : BadActionType(is, ", which is not compatible with the current device:"
+                            " only " % actionsToStr(actions) % " are allowed")
+    {}
+};
+
+
+QDBusArgument& operator<<(QDBusArgument& arg, const Macro macro);
+const QDBusArgument& operator>>(const QDBusArgument& arg, Macro& macro);
+
+QDebug operator<<(QDebug debug, const Macro macro);
+QDebug operator<<(QDebug debug, const QVector<Macro>& macros);
+QDebug operator<<(QDebug debug, const Mapping::ActionType action);
+QDebug operator<<(QDebug debug, const QVector<Mapping::ActionType>& macros);
 
 
 #endif // QPIPER_DBUS_BUTTON_INTERFACE_HPP

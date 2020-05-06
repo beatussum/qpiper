@@ -24,7 +24,10 @@
 #ifndef QPIPER_CORE_HPP
 #define QPIPER_CORE_HPP
 
+#include <memory>
+
 #include <QtCore/QLatin1String>
+#include <QtCore/QMetaEnum>
 
 
 #define nqDebug() qDebug().nospace()
@@ -32,6 +35,9 @@
 
 #define qStrL(str) QStringLiteral(str)
 #define qByteL(ba) QByteArrayLiteral(ba)
+
+template<class T>
+using Shared = std::shared_ptr<T>;
 
 
 /**
@@ -102,6 +108,20 @@ namespace AnsiColor
 }
 
 void qPiperMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg);
+
+/**
+ * @brief Get the name of an enumeration constant
+ *
+ * @tparam T     an enumeration type
+ * @value  value the value of the constant
+ *
+ * @return the name of the constant
+ */
+template<typename T>
+constexpr const char* enumToString(const T value)
+{
+    return QMetaEnum::fromType<T>().valueToKey(static_cast<int>(value));
+}
 
 
 #endif // QPIPER_CORE_HPP
