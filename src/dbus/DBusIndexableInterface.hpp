@@ -19,16 +19,16 @@
 #ifndef QPIPER_DBUS_INDEXABLE_INTERFACE_HPP
 #define QPIPER_DBUS_INDEXABLE_INTERFACE_HPP
 
-#include "dbus/DBusAbstractInterface.hpp"
+#include "dbus/IDBusInterface.hpp"
 
 
-class DBusIndexableInterface : public DBusAbstractInterface
+class DBusIndexableInterface : public IDBusInterface
 {
     Q_OBJECT
     Q_PROPERTY(quint32 Index READ getIndex)
 
 public:
-    using DBusAbstractInterface::DBusAbstractInterface;
+    using IDBusInterface::IDBusInterface;
 
     quint32 getIndex();
 };

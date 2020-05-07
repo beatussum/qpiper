@@ -16,15 +16,15 @@
  */
 
 
-#include "dbus/DBusAbstractInterface.hpp"
+#include "dbus/IDBusInterface.hpp"
 
 #include <QtCore/QtDebug>
 #include <QtDBus/QDBusReply>
 
 
-QString DBusAbstractInterface::m_serviceName_;
+QString IDBusInterface::m_serviceName_;
 
-DBusAbstractInterface::DBusAbstractInterface(const QString& inter, const QString& obj)
+IDBusInterface::IDBusInterface(const QString& inter, const QString& obj)
     : QDBusInterface(m_serviceName_, obj,
                      m_serviceName_ % '.' % inter,
                      QDBusConnection::systemBus())
@@ -33,15 +33,15 @@ DBusAbstractInterface::DBusAbstractInterface(const QString& inter, const QString
             << "for the object" << path();
 }
 
-DBusAbstractInterface::~DBusAbstractInterface() {}
+IDBusInterface::~IDBusInterface() {}
 
-void DBusAbstractInterface::setServiceName(const QString& name) noexcept
+void IDBusInterface::setServiceName(const QString& name) noexcept
 {
     qInfo() << "service name set to" << name;
     m_serviceName_ = name;
 }
 
-void DBusAbstractInterface::callAndCheck(const char *const method)
+void IDBusInterface::callAndCheck(const char *const method)
 {
     const QDBusReply<void>& r = call(method);
 

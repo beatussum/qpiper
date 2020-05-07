@@ -26,7 +26,7 @@
 
 
 /**
- * @class DBusPropertyException dbus/DBusAbstractInterface.hpp
+ * @class DBusPropertyException dbus/IDBusInterface.hpp
  * @brief An exception in case of property error
  */
 class DBusException final : public std::runtime_error
@@ -87,16 +87,16 @@ void DBusException::checkInRange(const char *const name, T lim, T first, Params.
 
 
 /**
- * @class DBusAbstractInterface dbus/DBusAbstractInterface.hpp
+ * @class IDBusInterface dbus/IDBusInterface.hpp
  * @brief A base class for all DBus interfaces
  *
  * This class provides some useful methods in order to avoid
  * repetitive code.
  *
  * @warning Before using any interface, please first set the name of the service
- * via DBusAbstractInterface::setServiceName(const QString& name).
+ * via IDBusInterface::setServiceName(const QString& name).
  */
-class DBusAbstractInterface : public QDBusInterface
+class IDBusInterface : public QDBusInterface
 {
 private:
     using QDBusInterface::call;
@@ -110,15 +110,15 @@ public:
     static void setServiceName(const QString& name) noexcept;
 protected:
     /**
-     * @brief Construct a new DBusAbstractInterface object
+     * @brief Construct a new IDBusInterface object
      *
      * @param inter the interface name without the root prefix: e.g.
      *              _button_ not _org.example.button_
-     * @param obj   the DBusAbstractInterface object
+     * @param obj   the DBus object
      */
-    explicit DBusAbstractInterface(const QString& inter, const QString& obj);
+    explicit IDBusInterface(const QString& inter, const QString& obj);
 
-    virtual ~DBusAbstractInterface() = 0;
+    virtual ~IDBusInterface() = 0;
 
     /**
      * @brief Call a void method
@@ -157,7 +157,7 @@ private:
 };
 
 template<class T>
-T DBusAbstractInterface::getPropertyAndCheck(const char *const name) const
+T IDBusInterface::getPropertyAndCheck(const char *const name) const
 {
     const QVariant& ret = property(name);
 
@@ -169,7 +169,7 @@ T DBusAbstractInterface::getPropertyAndCheck(const char *const name) const
 }
 
 template<class T>
-void DBusAbstractInterface::setPropertyAndCheck(const char *const name, T value)
+void IDBusInterface::setPropertyAndCheck(const char *const name, T value)
 {
     if (!setProperty(name, QVariant::fromValue(value)))
         throw DBusException(name, lastError());
