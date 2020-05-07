@@ -138,6 +138,8 @@ public:
 
     QVector<Mapping::ActionType> getSupportedActionTypes() const
         { return m_supportedActionTypes_; }
+public slots:
+    void disable();
 private:
     QVector<Mapping::ActionType> m_supportedActionTypes_;
 };

@@ -270,3 +270,9 @@ void DBusButtonInterface::setMapping(const Mapping& mapping)
 {
     setPropertyAndCheck("Mapping", mapping);
 }
+
+void DBusButtonInterface::disable()
+{
+    callAndCheck("Disable");
+    nqDebug() << "button n°\u00A0" << getIndex() << " disabled";
+}
