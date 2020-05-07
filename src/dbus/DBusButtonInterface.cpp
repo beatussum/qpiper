@@ -239,7 +239,7 @@ void Mapping::setMacros(const QVector<class Macro>& macros)
 /*#####################################*/
 
 DBusButtonInterface::DBusButtonInterface(const QString& obj)
-    : DBusIndexableInterface("Button", obj)
+    : IDBusIndexableInterface("Button", obj)
 {
     qDBusRegisterMetaType<Macro>();
     qDBusRegisterMetaType<QVector<Macro>>();

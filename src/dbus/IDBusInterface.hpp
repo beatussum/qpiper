@@ -96,11 +96,8 @@ void DBusException::checkInRange(const char *const name, T lim, T first, Params.
  * @warning Before using any interface, please first set the name of the service
  * via IDBusInterface::setServiceName(const QString& name).
  */
-class IDBusInterface : public QDBusInterface
+class IDBusInterface : protected QDBusInterface
 {
-private:
-    using QDBusInterface::call;
-    using QDBusInterface::property;
 public:
     /**
      * @brief Set the name of the service
@@ -108,7 +105,7 @@ public:
      * @param name the name of the service
      */
     static void setServiceName(const QString& name) noexcept;
-protected:
+
     /**
      * @brief Construct a new IDBusInterface object
      *
@@ -119,7 +116,7 @@ protected:
     explicit IDBusInterface(const QString& inter, const QString& obj);
 
     virtual ~IDBusInterface() = 0;
-
+protected:
     /**
      * @brief Call a void method
      *

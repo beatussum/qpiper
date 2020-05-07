@@ -20,14 +20,14 @@ set(QPIPER_UI)
 set(QPIPER_HPP
     core/core.hpp
     dbus/IDBusInterface.hpp
-    dbus/DBusIndexableInterface.hpp
+    dbus/IDBusIndexableInterface.hpp
     dbus/DBusLedInterface.hpp
     dbus/DBusButtonInterface.hpp)
 set(QPIPER_CPP
     main.cpp
     core/core.cpp
     dbus/IDBusInterface.cpp
-    dbus/DBusIndexableInterface.cpp
+    dbus/IDBusIndexableInterface.cpp
     dbus/DBusLedInterface.cpp
     dbus/DBusButtonInterface.cpp)
 

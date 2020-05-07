@@ -16,10 +16,24 @@
  */
 
 
-#include "dbus/DBusIndexableInterface.hpp"
+#ifndef QPIPER_DBUS_INDEXABLE_INTERFACE_HPP
+#define QPIPER_DBUS_INDEXABLE_INTERFACE_HPP
+
+#include "dbus/IDBusInterface.hpp"
 
 
-quint32 DBusIndexableInterface::getIndex()
+class IDBusIndexableInterface : public IDBusInterface
 {
-    return getPropertyAndCheck<quint32>("Index");
-}
+    Q_OBJECT
+    Q_PROPERTY(quint32 Index READ getIndex)
+
+public:
+    explicit IDBusIndexableInterface(const QString& inter, const QString& obj);
+
+    virtual ~IDBusIndexableInterface() = 0;
+
+    quint32 getIndex();
+};
+
+
+#endif // QPIPER_DBUS_INDEXABLE_INTERFACE_HPP

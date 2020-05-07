@@ -19,7 +19,7 @@
 #ifndef QPIPER_DBUS_LED_INTERFACE_HPP
 #define QPIPER_DBUS_LED_INTERFACE_HPP
 
-#include "dbus/DBusIndexableInterface.hpp"
+#include "dbus/IDBusIndexableInterface.hpp"
 
 
 class QDBusArgument;
@@ -34,7 +34,7 @@ struct Color
 Q_DECLARE_METATYPE(Color)
 
 
-class DBusLedInterface final : public DBusIndexableInterface
+class DBusLedInterface final : public IDBusIndexableInterface
 {
     Q_OBJECT
     Q_PROPERTY(quint32 Mode READ getMode_ WRITE setMode_)

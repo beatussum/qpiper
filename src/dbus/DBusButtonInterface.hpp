@@ -20,7 +20,7 @@
 #define QPIPER_DBUS_BUTTON_INTERFACE_HPP
 
 #include "core/core.hpp"
-#include "dbus/DBusIndexableInterface.hpp"
+#include "dbus/IDBusIndexableInterface.hpp"
 
 
 class QDBusArgument;
@@ -115,7 +115,7 @@ Q_DECLARE_METATYPE(Mapping::SpecialButton)
 
 
 class DBusButtonInterface final
-        : public DBusIndexableInterface
+        : public IDBusIndexableInterface
         , public std::enable_shared_from_this<DBusButtonInterface>
 {
     Q_OBJECT

@@ -16,22 +16,21 @@
  */
 
 
-#ifndef QPIPER_DBUS_INDEXABLE_INTERFACE_HPP
-#define QPIPER_DBUS_INDEXABLE_INTERFACE_HPP
+#include "core/core.hpp"
+#include "dbus/IDBusIndexableInterface.hpp"
 
-#include "dbus/IDBusInterface.hpp"
+#include <QtCore/QtDebug>
 
 
-class DBusIndexableInterface : public IDBusInterface
+IDBusIndexableInterface::IDBusIndexableInterface(const QString& inter, const QString& obj)
+    : IDBusInterface(inter, obj)
 {
-    Q_OBJECT
-    Q_PROPERTY(quint32 Index READ getIndex)
+    nqInfo().noquote() << "creating an instance of " << inter << " n°\u00A0" << getIndex();
+}
 
-public:
-    using IDBusInterface::IDBusInterface;
+IDBusIndexableInterface::~IDBusIndexableInterface() {}
 
-    quint32 getIndex();
-};
-
-
-#endif // QPIPER_DBUS_INDEXABLE_INTERFACE_HPP
+quint32 IDBusIndexableInterface::getIndex()
+{
+    return getPropertyAndCheck<quint32>("Index");
+}

@@ -84,7 +84,7 @@ quint8 DBusLedInterface::getBitsNumber_() const
 }
 
 DBusLedInterface::DBusLedInterface(const QString& obj)
-    : DBusIndexableInterface("Led", obj)
+    : IDBusIndexableInterface("Led", obj)
     , m_colorMax_(static_cast<quint32>(qPow(2, getBitsNumber_() * 8)) - 1)
 {
     nqInfo() << "colors are " << getBitsNumber_()
