@@ -44,14 +44,15 @@ class DBusLedInterface final : public IDBusIndexableInterface
     Q_PROPERTY(quint32 Brightness READ getBrightness WRITE setBrightness)
 
 public:
-    enum class Modes : quint8 {
+    enum class Mode : quint8 {
         Off = 0,
         Constant = 1,
         Cycles = 2,
         Breathing = 3
     };
+    Q_ENUM(Mode)
 
-    enum class ColorDepths : quint8 {
+    enum class ColorDepth : quint8 {
         ZeroBits = 0,
         EightBits = 1,
         OneBit = 2
@@ -67,16 +68,16 @@ private:
 public:
     explicit DBusLedInterface(const QString& obj);
 
-    static QString getModeDescription(const Modes mode);
-    static QString getColorDepthDescription(const ColorDepths depth);
+    static QString getModeDescription(const Mode mode);
+    static QString getColorDepthDescription(const ColorDepth depth);
 
-    Modes getMode() const;
-    void setMode(const Modes mode);
+    Mode getMode() const;
+    void setMode(const Mode mode);
 
     Color getColor() const;
     void setColor(const Color color);
 
-    ColorDepths getColorDepth() const;
+    ColorDepth getColorDepth() const;
 
     quint16 getEffectDuration() const;
     void setEffectDuration(const quint16 duration);
@@ -88,6 +89,7 @@ private:
 };
 
 
+QDebug operator<<(QDebug debug, const DBusLedInterface::Mode mode);
 QDebug operator<<(QDebug debug, const Color& color);
 
 QDBusArgument& operator<<(QDBusArgument& arg, const Color& color);

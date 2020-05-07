@@ -87,19 +87,19 @@ QDebug operator<<(QDebug debug, const QVector<Macro>& macros) {
 
 QDebug operator<<(QDebug debug, const Mapping::ActionType action)
 {
-    debug << "the mapping is of the"
-          << enumToString(action)
-          << "type";
+    debug.nospace() << "the mapping is of the `"
+                    << enumToString(action)
+                    << "` type";
 
-    return debug.nospace();
+    return debug;
 }
 
 QDebug operator<<(QDebug debug, const QVector<Mapping::ActionType>& vec)
 {
-    debug.noquote().space() << "the mouse supports:"
-                            << actionsToStr(vec);
+    debug.noquote().nospace() << "the mouse supports: "
+                              << actionsToStr(vec);
 
-    return debug.nospace();
+    return debug;
 }
 
 
