@@ -27,7 +27,7 @@ class QDBusArgument;
 class DBusButtonInterface;
 
 
-class Macro
+class Macro final
 {
     Q_GADGET
 
@@ -45,10 +45,9 @@ public:
 Q_DECLARE_METATYPE(Macro)
 
 
-class Mapping
+class Mapping final
 {
     Q_GADGET
-
 
     // to allow construction from QVariant
     friend struct QtMetaTypePrivate::QMetaTypeFunctionHelper<Mapping, true>;
@@ -115,7 +114,7 @@ Q_DECLARE_METATYPE(Mapping)
 Q_DECLARE_METATYPE(Mapping::SpecialButton)
 
 
-class DBusButtonInterface
+class DBusButtonInterface final
         : public DBusIndexableInterface
         , public std::enable_shared_from_this<DBusButtonInterface>
 {
@@ -124,14 +123,21 @@ class DBusButtonInterface
                READ getSupportedActionTypes_)
     Q_PROPERTY(Mapping Mapping READ getMapping WRITE setMapping)
 
-    friend class Mapping;
+    // force to be only a shared pointer
+    template<typename T, typename... Params>
+    friend Shared<T> std::make_shared(Params&&... params);
+    template<typename T>
+    friend class __gnu_cxx::new_allocator;
 private:
-    QVector<quint32> getSupportedActionTypes_() const;
-public:
     explicit DBusButtonInterface(const QString& obj);
 
+    QVector<quint32> getSupportedActionTypes_() const;
+public:
     Mapping getMapping() const;
     void setMapping(const Mapping& mapping);
+
+    QVector<Mapping::ActionType> getSupportedActionTypes() const
+        { return m_supportedActionTypes_; }
 private:
     QVector<Mapping::ActionType> m_supportedActionTypes_;
 };
@@ -142,10 +148,6 @@ QString actionsToStr(const QVector<Mapping::ActionType>& actions);
 class BadActionType final : public std::runtime_error
 {
 public:
-    BadActionType()
-        : std::runtime_error("No button is linked to this instance")
-    {}
-
     BadActionType(const char *const is, const QString& suffix)
         : std::runtime_error((qStrL("The action type is `") % is
                               % "` " % suffix).toLatin1())
@@ -162,13 +164,13 @@ public:
 };
 
 
-QDBusArgument& operator<<(QDBusArgument& arg, const Macro macro);
-const QDBusArgument& operator>>(const QDBusArgument& arg, Macro& macro);
-
 QDebug operator<<(QDebug debug, const Macro macro);
 QDebug operator<<(QDebug debug, const QVector<Macro>& macros);
 QDebug operator<<(QDebug debug, const Mapping::ActionType action);
 QDebug operator<<(QDebug debug, const QVector<Mapping::ActionType>& macros);
+
+QDBusArgument& operator<<(QDBusArgument& arg, const Macro macro);
+const QDBusArgument& operator>>(const QDBusArgument& arg, Macro& macro);
 
 
 #endif // QPIPER_DBUS_BUTTON_INTERFACE_HPP

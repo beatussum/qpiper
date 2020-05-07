@@ -48,7 +48,7 @@ void qPiperMessageHandler(QtMsgType type, const QMessageLogContext& context, con
                     .arg(fg::bgreen)
                   : qStrL("DEBUG\u00A0({fileName}:{line}): {msg}\n");
 
-            std::cerr << tmp.replace("{fileName}"_qls, std::move(fileName))
+            std::cerr << tmp.replace("{fileName}"_qls, fileName)
                          .replace("{line}"_qls, QString::number(context.line))
                          .replace("{msg}"_qls, msg).toStdString();
             break;

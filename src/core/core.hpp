@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2020 Mattéo Rossillol‑‑Laruelle <beatussum@protonmail.com>
  *
  * This program is free software:  you can redistribute it and/or modify
@@ -67,6 +67,9 @@ struct is_comparable<T,
  * @brief true if the output should be colored
  */
 extern const bool isColoredOutput;
+
+constexpr quint16 operator "" _us(const quint64 value)
+    { return static_cast<quint16>(value); }
 
 QLatin1String operator "" _qls(const char* value, const std::size_t size);
 

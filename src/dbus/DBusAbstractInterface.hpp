@@ -65,14 +65,14 @@ public:
      * @throw DBusException if at least one of \p params is higher
      * than \p lim
      */
-    template<typename T, typename... U>
-    static void checkInRange(const char *const name, T lim, T first, U... params);
+    template<typename T, typename... Params>
+    static void checkInRange(const char *const name, T lim, T first, Params... params);
 };
 
-template<typename T, typename... U>
-void DBusException::checkInRange(const char *const name, T lim, T first, U... params)
+template<typename T, typename... Params>
+void DBusException::checkInRange(const char *const name, T lim, T first, Params... params)
 {
-    static_assert(are_same<T, T, U...> && is_comparable<T>::value,
+    static_assert(are_same<T, T, Params...> && is_comparable<T>::value,
                   "the variadic parameters must be of the same "
                   "type and comparable");
 
@@ -99,6 +99,7 @@ void DBusException::checkInRange(const char *const name, T lim, T first, U... pa
 class DBusAbstractInterface : public QDBusInterface
 {
 private:
+    using QDBusInterface::call;
     using QDBusInterface::property;
 public:
     /**
@@ -158,10 +159,9 @@ private:
 template<class T>
 T DBusAbstractInterface::getPropertyAndCheck(const char *const name) const
 {
-    const QVariant ret = property(name);
-    const QDBusError error = lastError();
+    const QVariant& ret = property(name);
 
-    if (error.isValid()) {
+    if (const QDBusError& error = lastError(); error.isValid()) {
         throw DBusException(name, error);
     } else {
         return qvariant_cast<T>(ret);

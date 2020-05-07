@@ -22,10 +22,6 @@
 #include <QtDBus/QDBusReply>
 
 
-/*#####################################*/
-/*        DBusAbstractInterface        */
-/*#####################################*/
-
 QString DBusAbstractInterface::m_serviceName_;
 
 DBusAbstractInterface::DBusAbstractInterface(const QString& inter, const QString& obj)
@@ -47,7 +43,7 @@ void DBusAbstractInterface::setServiceName(const QString& name) noexcept
 
 void DBusAbstractInterface::callAndCheck(const char *const method)
 {
-    const QDBusReply<void> r = call(method);
+    const QDBusReply<void>& r = call(method);
 
     if (!r.isValid())
         throw DBusException(method, r.error());

@@ -25,11 +25,11 @@
 class DBusIndexableInterface : public DBusAbstractInterface
 {
     Q_OBJECT
+    Q_PROPERTY(quint32 Index READ getIndex)
 
 public:
     using DBusAbstractInterface::DBusAbstractInterface;
 
-    Q_PROPERTY(quint32 Index READ getIndex)
     quint32 getIndex();
 };
 

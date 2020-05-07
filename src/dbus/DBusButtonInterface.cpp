@@ -24,6 +24,86 @@
 
 
 /*#####################################*/
+/*                utils                */
+/*#####################################*/
+
+QString actionsToStr(const QVector<Mapping::ActionType>& actions)
+{
+    QString ret;
+    const auto size = actions.size();
+
+    for (int i = 0; i < size; ++i) {
+        ret = ret + '`' + enumToString(actions.at(i)) + '`';
+
+        switch (size - i) {
+            case 2:
+                ret += " and ";
+                break;
+            case 1:
+                break;
+            default:
+                ret += ", ";
+                break;
+        }
+    }
+
+    return ret;
+}
+
+
+/*#####################################*/
+/*           debug operators           */
+/*#####################################*/
+
+QDebug operator<<(QDebug debug, const Macro macro)
+{
+    debug.nospace() << "the macro of type `"
+                    << enumToString(macro.event)
+                    << "` having the value "
+                    << macro.value;
+
+    return debug;
+}
+
+QDebug operator<<(QDebug debug, const QVector<Macro>& macros) {
+    using namespace AnsiColor;
+
+    debug.noquote().nospace() << '\n';
+
+    for (const auto i : macros) {
+        debug << "\t\t";
+
+        if (isColoredOutput) {
+            debug << fg::bgreen << '-' << rst << fg::b;
+        } else {
+            debug << '-';
+        }
+
+        debug << ' ' << i << '\n';
+    }
+
+    return debug;
+}
+
+QDebug operator<<(QDebug debug, const Mapping::ActionType action)
+{
+    debug << "the mapping is of the"
+          << enumToString(action)
+          << "type";
+
+    return debug.nospace();
+}
+
+QDebug operator<<(QDebug debug, const QVector<Mapping::ActionType>& vec)
+{
+    debug.noquote().space() << "the mouse supports:"
+                            << actionsToStr(vec);
+
+    return debug.nospace();
+}
+
+
+/*#####################################*/
 /*    marshallers and demarshallers    */
 /*#####################################*/
 
@@ -75,71 +155,6 @@ const QDBusArgument& operator>>(const QDBusArgument& arg, Mapping& mapping)
 
 
 /*#####################################*/
-/*           debug operators           */
-/*#####################################*/
-
-QDebug operator<<(QDebug debug, const Macro macro)
-{
-    debug.nospace() << "the macro of type `"
-                    << enumToString(macro.event)
-                    << "` having the value "
-                    << macro.value;
-
-    return debug.maybeSpace();
-}
-
-QDebug operator<<(QDebug debug, const QVector<Macro>& macros) {
-    using namespace AnsiColor;
-
-    debug.nospace() << '\n';
-
-    for (const auto i : macros) {
-        debug.noquote() << "\t\t";
-
-        if (isColoredOutput) {
-            debug << fg::bgreen << '-' << rst << fg::b;
-        } else {
-            debug << '-';
-        }
-
-        debug << ' ' << i << '\n';
-    }
-
-    return debug.maybeSpace();
-}
-
-QDebug operator<<(QDebug debug, const Mapping::ActionType action)
-{
-    debug << "the mapping is of the"
-          << enumToString(action)
-          << "type";
-
-    return debug.maybeSpace();
-}
-
-QString actionsToStr(const QVector<Mapping::ActionType>& actions)
-{
-    QString ret;
-
-    for (int i = 0; i < actions.size(); ++i) {
-        ret += enumToString(actions.at(i));
-
-        if ((i + 1) < actions.size())
-            ret += ", ";
-    }
-
-    return ret;
-}
-
-QDebug operator<<(QDebug debug, const QVector<Mapping::ActionType>& vec)
-{
-    debug.space() << "the mouse supports:" << actionsToStr(vec);
-
-    return debug.maybeSpace();
-}
-
-
-/*#####################################*/
 /*               Mapping               */
 /*#####################################*/
 
@@ -158,11 +173,11 @@ T Mapping::getAndCheckVariant_(const ActionType check) const
 
 void Mapping::setActionType_(const ActionType action)
 {
-    if (m_button_ == nullptr) {
-        throw BadActionType();
-    } else if (!m_button_->m_supportedActionTypes_.contains(action)) {
+    const auto& tmp = m_button_->getSupportedActionTypes();
+
+    if (!tmp.contains(action)) {
         throw BadActionType(enumToString(action),
-                            m_button_->m_supportedActionTypes_);
+                            tmp);
     } else {
         qDebug() << "setting action type to" << enumToString(action);
         m_type_ = action;

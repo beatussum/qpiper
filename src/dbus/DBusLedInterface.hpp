@@ -31,10 +31,7 @@ struct Color
     quint32 green;
     quint32 blue;
 };
-
 Q_DECLARE_METATYPE(Color)
-QDBusArgument& operator<<(QDBusArgument& arg, const Color& color);
-const QDBusArgument& operator>>(const QDBusArgument& arg, Color& color);
 
 
 class DBusLedInterface final : public DBusIndexableInterface
@@ -47,26 +44,31 @@ class DBusLedInterface final : public DBusIndexableInterface
     Q_PROPERTY(quint32 Brightness READ getBrightness WRITE setBrightness)
 
 public:
-    enum Modes {
+    enum class Modes : quint8 {
         Off = 0,
         Constant = 1,
         Cycles = 2,
         Breathing = 3
     };
 
-    enum ColorDepths {
+    enum class ColorDepths : quint8 {
         ZeroBits = 0,
         EightBits = 1,
         OneBit = 2
     };
 
+private:
+    quint8 getMode_() const;
+    void setMode_(const quint8 mode);
+
+    quint8 getColorDepth_() const;
+
+    quint8 getBitsNumber_() const;
 public:
     explicit DBusLedInterface(const QString& obj);
 
     static QString getModeDescription(const Modes mode);
     static QString getColorDepthDescription(const ColorDepths depth);
-
-    quint32 getBitsNumber() const;
 
     Modes getMode() const;
     void setMode(const Modes mode);
@@ -76,19 +78,20 @@ public:
 
     ColorDepths getColorDepth() const;
 
-    quint32 getEffectDuration() const;
-    void setEffectDuration(const quint32 duration);
+    quint16 getEffectDuration() const;
+    void setEffectDuration(const quint16 duration);
 
-    quint32 getBrightness() const;
-    void setBrightness(const quint32 brightness);
-private:
-    quint32 getMode_() const;
-    void setMode_(const quint32 mode);
-
-    quint32 getColorDepth_() const;
+    quint8 getBrightness() const;
+    void setBrightness(const quint8 brightness);
 private:
     const quint32 m_colorMax_;
 };
+
+
+QDebug operator<<(QDebug debug, const Color& color);
+
+QDBusArgument& operator<<(QDBusArgument& arg, const Color& color);
+const QDBusArgument& operator>>(const QDBusArgument& arg, Color& color);
 
 
 #endif // QPIPER_DBUS_LED_INTERFACE_HPP
