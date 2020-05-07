@@ -24,13 +24,12 @@ project(QPiper
 
 option(WITH_DOCS "Enable building of documentation" OFF)
 
-set(CMAKE_CXX_FLAGS_RELEASE "")
+unset(CMAKE_CXX_FLAGS_RELEASE CACHE)
 macro(add_gcc_cxx_flags flags)
     if(CMAKE_COMPILER_IS_GNUCXX)
-         add_compile_options(${flags})
+         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flags}")
     endif()
 endmacro()
-
 
 # Use ccache if it is installed
 find_program(CCACHE_FOUND ccache)
