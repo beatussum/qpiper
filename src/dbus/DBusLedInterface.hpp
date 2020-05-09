@@ -25,7 +25,7 @@
 class QDBusArgument;
 
 
-struct Color
+struct Color final
 {
     quint32 red;
     quint32 green;

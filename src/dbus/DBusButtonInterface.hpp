@@ -115,24 +115,18 @@ Q_DECLARE_METATYPE(Mapping::SpecialButton)
 
 
 class DBusButtonInterface final
-        : public IDBusIndexableInterface
-        , public std::enable_shared_from_this<DBusButtonInterface>
+    : public IDBusIndexableInterface
+    , public std::enable_shared_from_this<DBusButtonInterface>
 {
     Q_OBJECT
-    Q_PROPERTY(QVector<quint32> ActionTypes
-               READ getSupportedActionTypes_)
+    Q_PROPERTY(QVector<quint32> ActionTypes READ getSupportedActionTypes_)
     Q_PROPERTY(Mapping Mapping READ getMapping WRITE setMapping)
 
-    // force to be only a shared pointer
-    template<typename T, typename... Params>
-    friend Shared<T> std::make_shared(Params&&... params);
-    template<typename T>
-    friend class __gnu_cxx::new_allocator;
 private:
-    explicit DBusButtonInterface(const QString& obj);
-
     QVector<quint32> getSupportedActionTypes_() const;
 public:
+    explicit DBusButtonInterface(const QString& obj);
+
     Mapping getMapping() const;
     void setMapping(const Mapping& mapping);
 
