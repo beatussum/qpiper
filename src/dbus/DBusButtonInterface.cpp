@@ -33,16 +33,16 @@ QString actionsToStr(const QVector<Mapping::ActionType>& actions)
     const auto size = actions.size();
 
     for (int i = 0; i < size; ++i) {
-        ret = ret + '`' + enumToString(actions.at(i)) + '`';
+        ret = ret % '`' % enumToString(actions.at(i)) % '`';
 
         switch (size - i) {
             case 2:
-                ret += " and ";
+                ret = ret % " and ";
                 break;
             case 1:
                 break;
             default:
-                ret += ", ";
+                ret = ret % ", ";
                 break;
         }
     }
@@ -109,46 +109,47 @@ QDebug operator<<(QDebug debug, const QVector<Mapping::ActionType>& vec)
 
 QDBusArgument& operator<<(QDBusArgument& arg, const Macro macro)
 {
+    qDebug() << "marshalling" << macro;
+
     arg.beginStructure();
     arg << static_cast<quint32>(macro.event) << macro.value;
     arg.endStructure();
 
-    qDebug() << "marshalling" << macro;
 
     return arg;
 }
 
 const QDBusArgument& operator>>(const QDBusArgument& arg, Macro& macro)
 {
+    qDebug() << "demarshalling" << macro;
+
     arg.beginStructure();
     macro.event = static_cast<Macro::KeyEvent>(qdbus_cast<quint32>(arg));
     arg >> macro.value;
     arg.endStructure();
-
-    qDebug() << "demarshalling" << macro;
 
     return arg;
 }
 
 QDBusArgument& operator<<(QDBusArgument& arg, const Mapping& mapping)
 {
+    qDebug() << mapping.m_type_;
+
     arg.beginStructure();
     arg << static_cast<quint32>(mapping.m_type_) << mapping.m_var_;
     arg.endStructure();
-
-    qDebug() << mapping.m_type_;
 
     return arg;
 }
 
 const QDBusArgument& operator>>(const QDBusArgument& arg, Mapping& mapping)
 {
+    qDebug() << mapping.m_type_;
+
     arg.beginStructure();
     mapping.m_type_ = static_cast<Mapping::ActionType>(qdbus_cast<quint32>(arg));
     arg >> mapping.m_var_;
     arg.endStructure();
-
-    qDebug() << mapping.m_type_;
 
     return arg;
 }
@@ -176,8 +177,7 @@ void Mapping::setActionType_(const ActionType action)
     const auto& tmp = m_button_->getSupportedActionTypes();
 
     if (!tmp.contains(action)) {
-        throw BadActionType(enumToString(action),
-                            tmp);
+        throw BadActionType(enumToString(action), tmp);
     } else {
         qDebug() << "setting action type to" << enumToString(action);
         m_type_ = action;
@@ -187,7 +187,8 @@ void Mapping::setActionType_(const ActionType action)
 quint32 Mapping::getButton() const
 {
     const auto ret = getAndCheckVariant_<quint32>(ActionType::Button);
-    nqInfo() << "this button is mapped to the button n°\u00A0" << ret;
+    nqInfo() << "button no.\u00A0" << m_button_->getIndex()
+             << " is mapped to the button no.\u00A0" << ret;
 
     return ret;
 }
@@ -238,7 +239,7 @@ void Mapping::setMacros(const QVector<class Macro>& macros)
 /*         DBusButtonInterface         */
 /*#####################################*/
 
-DBusButtonInterface::DBusButtonInterface(const QString& obj)
+DBusButtonInterface::DBusButtonInterface(const QDBusObjectPath& obj)
     : IDBusIndexableInterface("Button", obj)
 {
     qDBusRegisterMetaType<Macro>();
@@ -260,8 +261,11 @@ Mapping DBusButtonInterface::getMapping() const
 {
     auto ret = getPropertyAndCheck<Mapping>("Mapping");
 
-    qDebug() << "linking this button to the `Mapping` instance";
+    nqDebug() << "linking button no.\u00A0" << getIndex()
+              << " to the `Mapping` instance";
     ret.m_button_ = shared_from_this();
+    nqDebug() << "button no.\u00A0" << getIndex()
+              << " linked to the `Mapping` instance";
 
     return ret;
 }
@@ -273,6 +277,7 @@ void DBusButtonInterface::setMapping(const Mapping& mapping)
 
 void DBusButtonInterface::disable()
 {
+    nqDebug() << "disabling button no.\u00A0" << getIndex();
     callAndCheck("Disable");
-    nqDebug() << "button n°\u00A0" << getIndex() << " disabled";
+    nqDebug() << "button no.\u00A0" << getIndex() << " disabled";
 }

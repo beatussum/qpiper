@@ -21,8 +21,6 @@
 #include <iostream>
 
 
-const bool isColoredOutput = !qPiperGetEnv("COLOR", "none");
-
 QLatin1String operator "" _qls(const char* value, const std::size_t size)
 {
     return QLatin1String(value, static_cast<quint16>(size));
@@ -33,39 +31,38 @@ bool qPiperGetEnv(const char* name, const QByteArray value)
     return (qgetenv(qByteL("QPIPER_") + name) == value);
 }
 
+const bool isColoredOutput = !qPiperGetEnv("COLOR", "none");
+
 void qPiperMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
     using namespace AnsiColor;
 
     QString fileName = context.file;
     fileName = fileName.mid(fileName.indexOf("src"_qls));
-    QString tmp;
-    switch (type) {
+
+    switch (QString tmp; type) {
         case QtDebugMsg:
             tmp = isColoredOutput
                   ? qStrL("%1%2DEBUG%3\u00A0(%4{fileName}%3:%5{line}%3): %1{msg}%3\n")
-                    .arg(fg::b).arg(bg::brcyan).arg(rst).arg(fg::bred)
-                    .arg(fg::bgreen)
+                    .arg(fg::b).arg(bg::brcyan).arg(rst).arg(fg::bred).arg(fg::bgreen)
                   : qStrL("DEBUG\u00A0({fileName}:{line}): {msg}\n");
 
             std::cerr << tmp.replace("{fileName}"_qls, fileName)
-                         .replace("{line}"_qls, QString::number(context.line))
-                         .replace("{msg}"_qls, msg).toStdString();
+                            .replace("{line}"_qls, QString::number(context.line))
+                            .replace("{msg}"_qls, msg).toStdString();
             break;
         case QtWarningMsg:
             tmp = isColoredOutput
                   ? qStrL("%1%2!!\u00A0WARNING\u00A0!!%3\u00A0(%4{function}%3): %5{msg}%3\n")
-                    .arg(fg::bred).arg(bg::bryellow).arg(rst).arg(fg::bred)
-                    .arg(fg::b)
+                    .arg(fg::bred).arg(bg::bryellow).arg(rst).arg(fg::bred).arg(fg::b)
                   : qStrL("!!\u00A0WARNING\u00A0!!\u00A0({function}): {msg}\n");
 
             std::cerr << tmp.replace("{function}"_qls, context.function)
-                         .replace("{msg}"_qls, msg).toStdString();
+                            .replace("{msg}"_qls, msg).toStdString();
             break;
         default:
             tmp = isColoredOutput
-                  ? qStrL("%1%2INFO%3: %1{msg}%3\n")
-                    .arg(fg::b).arg(bg::brblue).arg(rst)
+                  ? qStrL("%1%2INFO%3: %1{msg}%3\n").arg(fg::b).arg(bg::brblue).arg(rst)
                   : qStrL("INFO: {msg}\n");
 
             std::cout << tmp.replace("{msg}"_qls, msg).toStdString();

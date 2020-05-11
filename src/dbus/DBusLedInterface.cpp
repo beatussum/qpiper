@@ -51,22 +51,22 @@ QDebug operator<<(QDebug debug, const Color& color)
 
 QDBusArgument& operator<<(QDBusArgument& arg, const Color& color)
 {
+    qDebug() << "marshalling" << color;
+
     arg.beginStructure();
     arg << color.red << color.green << color.blue;
     arg.endStructure();
-
-    qDebug() << "marshalling" << color;
 
     return arg;
 }
 
 const QDBusArgument& operator>>(const QDBusArgument& arg, Color& color)
 {
+    qDebug() << "demarshalling" << color;
+
     arg.beginStructure();
     arg >> color.red >> color.green >> color.blue;
     arg.endStructure();
-
-    qDebug() << "demarshalling" << color;
 
     return arg;
 }
@@ -90,7 +90,7 @@ quint8 DBusLedInterface::getBitsNumber_() const
     Q_UNREACHABLE();
 }
 
-DBusLedInterface::DBusLedInterface(const QString& obj)
+DBusLedInterface::DBusLedInterface(const QDBusObjectPath& obj)
     : IDBusIndexableInterface("Led", obj)
     , m_colorMax_(static_cast<quint32>(qPow(2, getBitsNumber_() * 8)) - 1)
 {

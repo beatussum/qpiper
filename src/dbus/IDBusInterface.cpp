@@ -24,8 +24,8 @@
 
 QString IDBusInterface::m_serviceName_;
 
-IDBusInterface::IDBusInterface(const QString& inter, const QString& obj)
-    : QDBusInterface(m_serviceName_, obj,
+IDBusInterface::IDBusInterface(const QString& inter, const QDBusObjectPath& obj)
+    : QDBusInterface(m_serviceName_, obj.path(),
                      m_serviceName_ % '.' % inter,
                      QDBusConnection::systemBus())
 {

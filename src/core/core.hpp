@@ -36,18 +36,28 @@
 #define qStrL(str) QStringLiteral(str)
 #define qByteL(ba) QByteArrayLiteral(ba)
 
+/**
+ * @brief Allow cast from `QVariant` even if the default constructor
+ * is `private`
+ *
+ * @param T the type in question
+ */
+#define ENABLE_QVARIANT(T)                                         \
+friend struct QtMetaTypePrivate::QMetaTypeFunctionHelper<T, true>; \
+friend struct QtPrivate::QVariantValueHelper<T>;
+
 template<class T>
 using Shared = std::shared_ptr<T>;
 
 /**
- * @brief plural of `std::is_same::value`
+ * @brief Plural of `std::is_same::value`
  */
 template <typename T, typename... U>
 constexpr bool are_same = std::conjunction_v<std::is_same<T, U>...>;
 
 /**
  * @struct is_comparable core/core.hpp
- * @brief The type used as a compile-time boolean with true value if \p T
+ * @brief The type used as a compile-time boolean with `true` value if \p T
  * is comparable
  */
 template<typename T, typename = void>
@@ -64,7 +74,7 @@ struct is_comparable<T,
 
 
 /**
- * @brief true if the output should be colored
+ * @brief `true` if the output should be colored
  */
 extern const bool isColoredOutput;
 

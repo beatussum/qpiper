@@ -27,7 +27,7 @@ class QDBusArgument;
 class DBusButtonInterface;
 
 
-class Macro final
+struct Macro final
 {
     Q_GADGET
 
@@ -48,10 +48,7 @@ Q_DECLARE_METATYPE(Macro)
 class Mapping final
 {
     Q_GADGET
-
-    // to allow construction from QVariant
-    friend struct QtMetaTypePrivate::QMetaTypeFunctionHelper<Mapping, true>;
-    friend struct QtPrivate::QVariantValueHelper<Mapping>;
+    ENABLE_QVARIANT(Mapping)
 
     friend class DBusButtonInterface;
     friend QDBusArgument& operator<<(QDBusArgument& arg, const Mapping& mapping);
@@ -125,7 +122,7 @@ class DBusButtonInterface final
 private:
     QVector<quint32> getSupportedActionTypes_() const;
 public:
-    explicit DBusButtonInterface(const QString& obj);
+    explicit DBusButtonInterface(const QDBusObjectPath& obj);
 
     Mapping getMapping() const;
     void setMapping(const Mapping& mapping);

@@ -26,14 +26,14 @@
 
 
 /**
- * @class DBusPropertyException dbus/IDBusInterface.hpp
+ * @class DBusException dbus/IDBusInterface.hpp
  * @brief An exception in case of property error
  */
 class DBusException final : public std::runtime_error
 {
 public:
     /**
-     * @brief Construct a new DBusPropertyException object with a name and
+     * @brief Construct a new `DBusException` object with a name and
      * a description
      *
      * @param name the name of the property
@@ -45,8 +45,8 @@ public:
     {}
 
     /**
-     * @brief Construct a new DBusException object with the name of a
-     * property and a QDBusError
+     * @brief Construct a new `DBusException` object with the name of a
+     * property and a `QDBusError`
      *
      * @param name  the name of the property
      * @param error the DBus error
@@ -90,11 +90,11 @@ void DBusException::checkInRange(const char *const name, T lim, T first, Params.
  * @class IDBusInterface dbus/IDBusInterface.hpp
  * @brief A base class for all DBus interfaces
  *
- * This class provides some useful methods in order to avoid
- * repetitive code.
+ * This class provides some useful methods in order to avoid repetitive
+ * code.
  *
- * @warning Before using any interface, please first set the name of the service
- * via IDBusInterface::setServiceName(const QString& name).
+ * @warning Before using any interface, please first set the name of the
+ * service via `IDBusInterface::setServiceName(const QString& name)`.
  */
 class IDBusInterface : protected QDBusInterface
 {
@@ -105,20 +105,20 @@ public:
      * @param name the name of the service
      */
     static void setServiceName(const QString& name) noexcept;
-
+protected:
     /**
-     * @brief Construct a new IDBusInterface object
+     * @brief Construct a new `IDBusInterface` object
      *
      * @param inter the interface name without the root prefix: e.g.
      *              _button_ not _org.example.button_
      * @param obj   the DBus object
      */
-    explicit IDBusInterface(const QString& inter, const QString& obj);
+    explicit IDBusInterface(const QString& inter, const QDBusObjectPath& obj);
 
     virtual ~IDBusInterface() = 0;
-protected:
+
     /**
-     * @brief Call a void method
+     * @brief Call a DBus `void` method
      *
      * @param method the name of the method
      *
@@ -132,8 +132,8 @@ protected:
      * @tparam T    the type of the property
      * @param  name the name of the property
      *
-     * @return a valid QVariant
-     * @throw DBusException if the QVariant is invalid
+     * @return a valid `QVariant`
+     * @throw DBusException if an error has occured
      */
     template<class T>
     T getPropertyAndCheck(const char *const name) const;
@@ -143,9 +143,9 @@ protected:
      *
      * @tparam T     the type of the property
      * @param  name  the name of the property
-     * @param  value the desired value
+     * @param  value the desired value usable by `QVariant::fromValue(const T &value)`
      *
-     * @throw DBusException if the QVariant is invalid
+     * @throw DBusException if an error has occured
      */
     template<class T>
     void setPropertyAndCheck(const char *const name, T value);

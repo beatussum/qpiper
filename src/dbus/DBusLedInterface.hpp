@@ -66,7 +66,7 @@ private:
 
     quint8 getBitsNumber_() const;
 public:
-    explicit DBusLedInterface(const QString& obj);
+    explicit DBusLedInterface(const QDBusObjectPath& obj);
 
     static QString getModeDescription(const Mode mode);
     static QString getColorDepthDescription(const ColorDepth depth);

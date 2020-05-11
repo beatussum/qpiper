@@ -22,17 +22,21 @@
 #include "dbus/IDBusInterface.hpp"
 
 
-class IDBusIndexableInterface : public IDBusInterface
+/**
+ * @class IDBusIndexableInterface dbus/IDBusIndexableInterface.hpp
+ * @brief A child of `IDBusInterface` for indexable interfaces
+ */
+class IDBusIndexableInterface : protected IDBusInterface
 {
     Q_OBJECT
     Q_PROPERTY(quint32 Index READ getIndex)
 
 public:
-    explicit IDBusIndexableInterface(const QString& inter, const QString& obj);
+    explicit IDBusIndexableInterface(const QString& inter, const QDBusObjectPath& obj);
 
     virtual ~IDBusIndexableInterface() = 0;
 
-    quint32 getIndex();
+    quint8 getIndex() const;
 };
 
 
