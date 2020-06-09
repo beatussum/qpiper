@@ -47,8 +47,8 @@ class Resolution final
     Q_GADGET
 
     friend class DBusResolutionInterface;
-    friend QDebug operator<<(QDebug debug, const Resolution res);
-    friend QDebug operator<<(QDebug debug, const QVector<Resolution> res);
+    friend QDebug operator<<(QDebug, const Resolution);
+    friend QDebug operator<<(QDebug, const QVector<Resolution>);
     friend bool operator==(const Resolution, const Resolution);
 private:
     enum Type : quint8 { Null, Axis, Axes };
@@ -102,15 +102,15 @@ class DBusResolutionInterface final : private IDBusIndexableInterface
 
 private:
     QDBusVariant getResolution_() const;
-    void setResolution_(const QDBusVariant& res);
+    void setResolution_(const QDBusVariant&);
 
     QVector<quint32> getSupportedResolutions_() const;
     void checkResolution(const Resolution) const;
 public:
-    explicit DBusResolutionInterface(const QDBusObjectPath& obj);
+    explicit DBusResolutionInterface(const QDBusObjectPath&);
 
     Resolution getResolution() const;
-    void setResolution(const Resolution res);
+    void setResolution(const Resolution);
 
     QVector<Resolution> getSupportedResolutions() const
         { return m_supportedResolutions_; }
@@ -126,10 +126,10 @@ private:
 };
 
 
-QDebug operator<<(QDebug debug, const Axes axes);
+QDebug operator<<(QDebug, const Axes);
 
-QDBusArgument& operator<<(QDBusArgument& arg, const Axes axes);
-const QDBusArgument& operator>>(const QDBusArgument& arg, Axes& axes);
+QDBusArgument& operator<<(QDBusArgument&, const Axes);
+const QDBusArgument& operator>>(const QDBusArgument&, Axes&);
 
 
 #endif // QPIPER_DBUS_RESOLUTION_INTERFACE_HPP

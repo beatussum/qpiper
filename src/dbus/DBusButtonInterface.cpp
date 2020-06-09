@@ -160,13 +160,13 @@ const QDBusArgument& operator>>(const QDBusArgument& arg, Mapping& mapping)
 /*#####################################*/
 
 template<class T>
-T Mapping::getAndCheckVariant_(const ActionType check) const
+T Mapping::getAndCheckVariant_(const ActionType shouldBe) const
 {
     const auto currentAction = getActionType();
 
-    if (currentAction != check) {
+    if (currentAction != shouldBe) {
         throw BadActionType(enumToString(currentAction),
-                            enumToString(check));
+                            enumToString(shouldBe));
     } else {
         return qvariant_cast<T>(m_var_.variant());
     }

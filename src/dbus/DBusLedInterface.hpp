@@ -60,40 +60,40 @@ public:
 
 private:
     quint8 getMode_() const;
-    void setMode_(const quint8 mode);
+    void setMode_(const quint8);
 
     quint8 getColorDepth_() const;
 
     quint8 getBitsNumber_() const;
 public:
-    explicit DBusLedInterface(const QDBusObjectPath& obj);
+    explicit DBusLedInterface(const QDBusObjectPath&);
 
-    static QString getModeDescription(const Mode mode);
-    static QString getColorDepthDescription(const ColorDepth depth);
+    static QString getModeDescription(const Mode);
+    static QString getColorDepthDescription(const ColorDepth);
 
     Mode getMode() const;
-    void setMode(const Mode mode);
+    void setMode(const Mode);
 
     Color getColor() const;
-    void setColor(const Color color);
+    void setColor(const Color);
 
     ColorDepth getColorDepth() const;
 
     quint16 getEffectDuration() const;
-    void setEffectDuration(const quint16 duration);
+    void setEffectDuration(const quint16);
 
     quint8 getBrightness() const;
-    void setBrightness(const quint8 brightness);
+    void setBrightness(const quint8);
 private:
     const quint32 m_colorMax_;
 };
 
 
-QDebug operator<<(QDebug debug, const DBusLedInterface::Mode mode);
-QDebug operator<<(QDebug debug, const Color& color);
+QDebug operator<<(QDebug, const DBusLedInterface::Mode);
+QDebug operator<<(QDebug, const Color&);
 
-QDBusArgument& operator<<(QDBusArgument& arg, const Color& color);
-const QDBusArgument& operator>>(const QDBusArgument& arg, Color& color);
+QDBusArgument& operator<<(QDBusArgument&, const Color&);
+const QDBusArgument& operator>>(const QDBusArgument&, Color&);
 
 
 #endif // QPIPER_DBUS_LED_INTERFACE_HPP
