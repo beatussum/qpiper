@@ -22,14 +22,16 @@ set(QPIPER_HPP
     dbus/IDBusInterface.hpp
     dbus/IDBusIndexableInterface.hpp
     dbus/DBusLedInterface.hpp
-    dbus/DBusButtonInterface.hpp)
+    dbus/DBusButtonInterface.hpp
+    dbus/DBusResolutionInterface.hpp)
 set(QPIPER_CPP
     main.cpp
     core/core.cpp
     dbus/IDBusInterface.cpp
     dbus/IDBusIndexableInterface.cpp
     dbus/DBusLedInterface.cpp
-    dbus/DBusButtonInterface.cpp)
+    dbus/DBusButtonInterface.cpp
+    dbus/DBusResolutionInterface.cpp)
 
 set(DOCS_DIR "${CMAKE_BINARY_DIR}/docs" CACHE PATH
     "The path where the documention is built")
@@ -48,7 +50,6 @@ target_link_libraries(qpiper Qt5::DBus Qt5::Gui Qt5::Widgets)
 if(DOXYGEN_FOUND AND WITH_DOCS)
     set(DOXYGEN_OUTPUT_DIRECTORY ${DOCS_DIR})
     set(DOXYGEN_ALLOW_UNICODE_NAMES YES)
-    set(DOXYGEN_REPEAT_BRIEF NO)
     set(DOXYGEN_INLINE_INHERITED_MEMB YES)
     set(DOXYGEN_HIDE_UNDOC_CLASSES YES)
     set(DOXYGEN_HIDE_IN_BODY_DOCS YES)
