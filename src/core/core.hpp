@@ -37,14 +37,17 @@
 #define qByteL(ba) QByteArrayLiteral(ba)
 
 /**
- * @brief Allow cast from `QVariant` even if the default constructor
- * is `private`
+ * @brief Allow cast from `QVariant` with a `private` default
+ * constructor
  *
  * @param T the type in question
  */
 #define ENABLE_QVARIANT(T)                                         \
 friend struct QtMetaTypePrivate::QMetaTypeFunctionHelper<T, true>; \
-friend struct QtPrivate::QVariantValueHelper<T>;
+friend struct QtPrivate::QVariantValueHelper<T>;                   \
+                                                                   \
+private:                                                           \
+T() = default;
 
 template<class T>
 using Shared = std::shared_ptr<T>;

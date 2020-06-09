@@ -85,8 +85,6 @@ public:
     };
     Q_ENUM(SpecialButton)
 private:
-    Mapping() = default;
-
     template<class T>
     T getAndCheckVariant_(const ActionType check) const;
 
