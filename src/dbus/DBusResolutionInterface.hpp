@@ -35,23 +35,20 @@ public:
 };
 Q_DECLARE_METATYPE(Axes)
 
-inline bool operator==(const Axes a, const Axes b)
+constexpr bool operator==(const Axes a, const Axes b)
     { return (a.x == b.x) && (a.y == b.y); }
-
-inline bool operator==(const quint16 a, const Axes b)
-    { return (a == b.x) || (a == b.y); }
 
 
 class Resolution final
 {
-    Q_GADGET
-
     friend class DBusResolutionInterface;
     friend QDebug operator<<(QDebug, const Resolution);
     friend QDebug operator<<(QDebug, const QVector<Resolution>);
     friend bool operator==(const Resolution, const Resolution);
-private:
+public:
     enum Type : quint8 { Null, Axis, Axes };
+private:
+    std::pair<Resolution, Resolution> tie_() const;
 public:
     constexpr Resolution(const quint16 xy)
         : m_type_(Axis), m_axis_(xy)
@@ -65,8 +62,9 @@ public:
         : m_type_(Null), m_null_(true)
     {}
 
-    bool isNull() const { return m_null_; }
     QString translate() const;
+
+    static constexpr const char* typeToString(const Type);
 
     explicit operator QString() const;
 private:
@@ -79,15 +77,37 @@ private:
     };
 };
 
+constexpr const char* Resolution::typeToString(const Type type)
+{
+    switch (type) {
+        case Resolution::Axis:
+            return "(xy)";
+        case Resolution::Axes:
+            return "(x, y)";
+        case Resolution::Null:
+            return "(null)";
+    }
+
+    Q_UNREACHABLE();
+}
+
 
 class BadResolution final : public std::runtime_error
 {
 public:
-    BadResolution(const Resolution nsupported)
-        : std::runtime_error(("The resolution ("
+    BadResolution(const Resolution nsupported, const QString msg = QString())
+        : std::runtime_error(("The resolution "
                               % static_cast<QString>(nsupported)
-                              % ") is not compatible with the current device")
+                              % " is not compatible with the current device"
+                              % (msg.isNull() ? "." : ": ") % msg)
                              .toLatin1())
+    {}
+
+    BadResolution(const Resolution nsupported, const Resolution::Type is, const Resolution::Type shouldBe)
+        : BadResolution(nsupported, QString("the resolution type is of type ")
+                                    % Resolution::typeToString(is)
+                                    % " but should be of type "
+                                    % Resolution::typeToString(shouldBe))
     {}
 };
 
@@ -101,15 +121,15 @@ class DBusResolutionInterface final : private IDBusIndexableInterface
     Q_PROPERTY(QVector<quint32> Resolutions READ getSupportedResolutions_)
 
 private:
+
+    void checkResolution(const Resolution) const;
+    QVector<quint32> getSupportedResolutions_() const;
     QDBusVariant getResolution_() const;
     void setResolution_(const QDBusVariant&);
-
-    QVector<quint32> getSupportedResolutions_() const;
-    void checkResolution(const Resolution) const;
 public:
     explicit DBusResolutionInterface(const QDBusObjectPath&);
 
-    Resolution getResolution() const;
+    Resolution getResolution(const bool assumed = false) const;
     void setResolution(const Resolution);
 
     QVector<Resolution> getSupportedResolutions() const
@@ -122,7 +142,7 @@ public slots:
     void setDefault();
 private:
     QVector<Resolution> m_supportedResolutions_;
-    Resolution::Type m_type_;
+    const Resolution::Type m_type_;
 };
 
 

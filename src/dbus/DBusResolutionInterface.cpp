@@ -77,6 +77,7 @@ QDBusArgument& operator<<(QDBusArgument& arg, const Axes axes)
     arg << static_cast<quint32>(axes.x) << static_cast<quint32>(axes.y);
     arg.endStructure();
 
+    qDebug() << axes << "marshalled";
     return arg;
 }
 
@@ -90,6 +91,7 @@ const QDBusArgument& operator>>(const QDBusArgument& arg, Axes& axes)
     axes.y = static_cast<quint16>(qdbus_cast<quint32>(arg));
     arg.endStructure();
 
+    qDebug() << axes << "demarshalled";
     return arg;
 }
 
@@ -100,7 +102,7 @@ const QDBusArgument& operator>>(const QDBusArgument& arg, Axes& axes)
 
 Axes::operator QString() const
 {
-    return QString::number(x) % ", " % QString::number(y);
+    return '(' % QString::number(x) % ", " % QString::number(y) % ')';
 }
 
 
@@ -126,21 +128,21 @@ QString Resolution::translate() const
 
 Resolution::operator QString() const
 {
-    QString ret;
-
     switch (m_type_) {
-        case Null:
-            ret = "null";
-            break;
         case Axis:
-            ret = QString::number(m_axis_);
-            break;
+            return '(' % QString::number(m_axis_) % ')';
         case Axes:
-            ret = static_cast<QString>(m_axes_);
-            break;
+            return static_cast<QString>(m_axes_);
+        case Null:
+            return typeToString(Null);
     }
 
-    return '(' % ret % ')';
+    Q_UNREACHABLE();
+}
+
+std::pair<Resolution, Resolution> Resolution::tie_() const
+{
+    return std::make_pair(m_axes_.x, m_axes_.y);
 }
 
 bool operator==(const Resolution a, const Resolution b)
@@ -159,20 +161,6 @@ bool operator==(const Resolution a, const Resolution b)
                 ret = true;
                 break;
         }
-    } else if ((a.m_type_ != Resolution::Null)
-               && (b.m_type_ != Resolution::Null))
-    {
-        switch (a.m_type_) {
-            case Resolution::Axis:
-                ret = (a.m_axis_ == b.m_axes_);
-                break;
-            case Resolution::Axes:
-                ret = (a.m_axes_ == b.m_axis_);
-                break;
-            default:
-                Q_UNREACHABLE();
-                break;
-        }
     }
 
     qDebug() << a << (ret ? "==" : "!=") << b;
@@ -186,9 +174,34 @@ bool operator==(const Resolution a, const Resolution b)
 
 void DBusResolutionInterface::checkResolution(const Resolution res) const
 {
-    qDebug() << "checking whether the resolution is valid";
-    if (!m_supportedResolutions_.contains(res))
+    nqDebug() << "checking whether resolution no.\u00A0"
+              << getIndex() << " is valid";
+
+    bool a = (res.m_type_ == m_type_);
+
+    if (a) {
+        switch (res.m_type_) {
+            case Resolution::Axis:
+                a = m_supportedResolutions_.contains(res);
+                break;
+            case Resolution::Axes:
+                {
+                    const auto [x, y] = res.tie_();
+                    a = (m_supportedResolutions_.contains(x)
+                          && m_supportedResolutions_.contains(y));
+                }
+                break;
+            case Resolution::Null:
+                break;
+        }
+    } else {
+        throw BadResolution(res, res.m_type_, m_type_);
+    }
+
+    if (!a)
         throw BadResolution(res);
+
+    nqDebug() << "resolution no.\u00A0" << getIndex() << " is valid";
 }
 
 QVector<quint32> DBusResolutionInterface::getSupportedResolutions_() const
@@ -198,6 +211,7 @@ QVector<quint32> DBusResolutionInterface::getSupportedResolutions_() const
 
 DBusResolutionInterface::DBusResolutionInterface(const QDBusObjectPath& obj)
     : IDBusIndexableInterface("Resolution", obj)
+    , m_type_(getResolution(true).m_type_)
 {
     qDBusRegisterMetaType<Axes>();
 
@@ -205,6 +219,8 @@ DBusResolutionInterface::DBusResolutionInterface(const QDBusObjectPath& obj)
         m_supportedResolutions_.append(static_cast<quint16>(i));
 
     qInfo() << "the mouse supports resolutions:" << m_supportedResolutions_;
+    qInfo() << "the mouse supports resolutions with the form"
+            << Resolution::typeToString(m_type_);
 }
 
 QDBusVariant DBusResolutionInterface::getResolution_() const
@@ -212,20 +228,18 @@ QDBusVariant DBusResolutionInterface::getResolution_() const
     return getPropertyAndCheck<QDBusVariant>("Resolution");
 }
 
-Resolution DBusResolutionInterface::getResolution() const
+Resolution DBusResolutionInterface::getResolution(const bool assumed) const
 {
-    nqDebug() << "getting the value of the resolution no.\u00A0"
+    nqDebug() << "getting the value of resolution no.\u00A0"
               << getIndex();
     Resolution ret;
 
     switch (const auto& var = getResolution_().variant(); var.type()) {
         case QVariant::UInt:
-            qInfo() << "resolution is of type (xy)";
             ret = static_cast<quint16>(var.toUInt());
             break;
         // Resolution with the format (x, y) not tested
         case QVariant::UserType:
-            qInfo() << "resolution is of type (x, y)";
             ret = qdbus_cast<Axes>(var);
             break;
         default:
@@ -233,9 +247,14 @@ Resolution DBusResolutionInterface::getResolution() const
             break;
     }
 
-    checkResolution(ret);
+    if (!assumed) {
+        checkResolution(ret);
+    } else {
+        qDebug() << "this value is assumed and therefore no check will be "
+                    "performed because `assumed = true`";
+    }
 
-    nqDebug() << "the value of the resolution no.\u00A0"
+    nqDebug() << "the value of resolution no.\u00A0"
               << getIndex() << " get: let " << ret;
     return ret;
 }
@@ -247,21 +266,17 @@ void DBusResolutionInterface::setResolution_(const QDBusVariant& res)
 
 void DBusResolutionInterface::setResolution(const Resolution res)
 {
-    nqDebug() << "setting the resolution no.\u00A0" << getIndex()
+    nqDebug() << "setting resolution no.\u00A0" << getIndex()
               << " to " << res;
-
     checkResolution(res);
-
     QDBusVariant var;
 
     switch (res.m_type_) {
         case Resolution::Axis:
-            nqInfo() << "the resolution no.\u00A0" << getIndex() << " is of type (xy)";
             var.setVariant(QVariant::fromValue(QDBusVariant(static_cast<quint32>(res.m_axis_))));
             break;
         // Resolution with the format (x, y) not tested
         case Resolution::Axes:
-            nqInfo() << "the resolution no.\u00A0" << getIndex() << " is of type (x, y)";
             var.setVariant(QVariant::fromValue(QDBusVariant(QVariant::fromValue(res.m_axes_))));
             break;
         default:
@@ -270,8 +285,7 @@ void DBusResolutionInterface::setResolution(const Resolution res)
     }
 
     setResolution_(var);
-
-    nqDebug() << "the resolution no.\u00A0" << getIndex()
+    nqDebug() << "resolution no.\u00A0" << getIndex()
               << " set to " << res;
 }
 
@@ -282,9 +296,11 @@ bool DBusResolutionInterface::isDefault() const
 
 void DBusResolutionInterface::setDefault()
 {
-    nqDebug() << "setting the resolution no.\u00A0" << getIndex() << " by default";
+    nqDebug() << "setting resolution no.\u00A0" << getIndex()
+              << " by default";
     callAndCheck("SetDefault");
-    nqDebug() << "the resolution no.\u00A0" << getIndex() << " set by default";
+    nqDebug() << "resolution no.\u00A0" << getIndex()
+              << " set by default";
 }
 
 bool DBusResolutionInterface::isActive() const
@@ -294,7 +310,7 @@ bool DBusResolutionInterface::isActive() const
 
 void DBusResolutionInterface::setActive()
 {
-    nqDebug() << "activating the resolution no.\u00A0" << getIndex();
+    nqDebug() << "activating resolution no.\u00A0" << getIndex();
     callAndCheck("SetActive");
-    nqDebug() << "the resolution no.\u00A0" << getIndex() << " activated";
+    nqDebug() << "resolution no.\u00A0" << getIndex() << " activated";
 }
