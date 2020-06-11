@@ -21,12 +21,12 @@
 #include <iostream>
 
 
-QLatin1String operator "" _qls(const char* value, const std::size_t size)
+QLatin1String operator "" _qls(const char *const value, const std::size_t size)
 {
     return QLatin1String(value, static_cast<quint16>(size));
 }
 
-bool qPiperGetEnv(const char* name, const QByteArray value)
+bool qPiperGetEnv(const QByteArray name, const QByteArray value)
 {
     return (qgetenv(qByteL("QPIPER_") + name) == value);
 }

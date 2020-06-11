@@ -86,7 +86,7 @@ extern const bool isColoredOutput;
 constexpr quint16 operator "" _us(const quint64 value)
     { return static_cast<quint16>(value); }
 
-QLatin1String operator "" _qls(const char* value, const std::size_t size);
+QLatin1String operator "" _qls(const char *const value, const std::size_t size);
 
 /**
  * @brief Check the value of an environment variable
@@ -97,7 +97,7 @@ QLatin1String operator "" _qls(const char* value, const std::size_t size);
  *
  * @return true if the value of \p name is equal to \p value
  */
-bool qPiperGetEnv(const char* name, const QByteArray value);
+bool qPiperGetEnv(const QByteArray name, const QByteArray value);
 
 /**
  * @brief Contain some ANSI escape code
