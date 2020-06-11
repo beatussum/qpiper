@@ -32,11 +32,15 @@ class IDBusIndexableInterface : protected IDBusInterface
     Q_PROPERTY(quint32 Index READ getIndex)
 
 public:
+    quint8 getIndex() const;
+
+    explicit operator QString() const;
+
     explicit IDBusIndexableInterface(const QString& inter, const QDBusObjectPath& obj);
 
     virtual ~IDBusIndexableInterface() = 0;
-
-    quint8 getIndex() const;
+private:
+    const QString m_interface_;
 };
 
 

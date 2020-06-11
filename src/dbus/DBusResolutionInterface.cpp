@@ -174,8 +174,8 @@ bool operator==(const Resolution a, const Resolution b)
 
 void DBusResolutionInterface::checkResolution(const Resolution res) const
 {
-    nqDebug() << "checking whether resolution no.\u00A0"
-              << getIndex() << " is valid";
+    qqDebug() << "checking whether" << static_cast<QString>(*this)
+              << "is valid";
 
     bool a = (res.m_type_ == m_type_);
 
@@ -201,7 +201,7 @@ void DBusResolutionInterface::checkResolution(const Resolution res) const
     if (!a)
         throw BadResolution(res);
 
-    nqDebug() << "resolution no.\u00A0" << getIndex() << " is valid";
+    qqDebug() << static_cast<QString>(*this) << "is valid";
 }
 
 QVector<quint32> DBusResolutionInterface::getSupportedResolutions_() const
@@ -230,8 +230,7 @@ QDBusVariant DBusResolutionInterface::getResolution_() const
 
 Resolution DBusResolutionInterface::getResolution(const bool assumed) const
 {
-    nqDebug() << "getting the value of resolution no.\u00A0"
-              << getIndex();
+    qqDebug() << "getting the value of" << static_cast<QString>(*this);
     Resolution ret;
 
     switch (const auto& var = getResolution_().variant(); var.type()) {
@@ -254,8 +253,8 @@ Resolution DBusResolutionInterface::getResolution(const bool assumed) const
                     "performed because `assumed = true`";
     }
 
-    nqDebug() << "the value of resolution no.\u00A0"
-              << getIndex() << " get: let " << ret;
+    qqDebug() << "the value of" << static_cast<QString>(*this)
+              << "get: let" << ret;
     return ret;
 }
 
@@ -266,8 +265,7 @@ void DBusResolutionInterface::setResolution_(const QDBusVariant& res)
 
 void DBusResolutionInterface::setResolution(const Resolution res)
 {
-    nqDebug() << "setting resolution no.\u00A0" << getIndex()
-              << " to " << res;
+    qqDebug() << "setting" << static_cast<QString>(*this) << "to" << res;
     checkResolution(res);
     QDBusVariant var;
 
@@ -285,8 +283,7 @@ void DBusResolutionInterface::setResolution(const Resolution res)
     }
 
     setResolution_(var);
-    nqDebug() << "resolution no.\u00A0" << getIndex()
-              << " set to " << res;
+    qqDebug() << static_cast<QString>(*this) << "set to" << res;
 }
 
 bool DBusResolutionInterface::isDefault() const
@@ -296,11 +293,9 @@ bool DBusResolutionInterface::isDefault() const
 
 void DBusResolutionInterface::setDefault()
 {
-    nqDebug() << "setting resolution no.\u00A0" << getIndex()
-              << " by default";
+    qqDebug() << "setting" << static_cast<QString>(*this) << "by default";
     callAndCheck("SetDefault");
-    nqDebug() << "resolution no.\u00A0" << getIndex()
-              << " set by default";
+    qqDebug() << static_cast<QString>(*this) << "set by default";
 }
 
 bool DBusResolutionInterface::isActive() const
@@ -310,7 +305,7 @@ bool DBusResolutionInterface::isActive() const
 
 void DBusResolutionInterface::setActive()
 {
-    nqDebug() << "activating resolution no.\u00A0" << getIndex();
+    qqDebug() << "activating" << static_cast<QString>(*this);
     callAndCheck("SetActive");
-    nqDebug() << "resolution no.\u00A0" << getIndex() << " activated";
+    qqDebug() << static_cast<QString>(*this) << "activated";
 }

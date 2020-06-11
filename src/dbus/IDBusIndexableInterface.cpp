@@ -22,16 +22,22 @@
 #include <QtCore/QtDebug>
 
 
-IDBusIndexableInterface::IDBusIndexableInterface(const QString& inter, const QDBusObjectPath& obj)
-    : IDBusInterface(inter, obj)
-{
-    nqInfo().noquote() << "creating an instance of " << inter
-                       << " n°\u00A0" << getIndex();
-}
-
-IDBusIndexableInterface::~IDBusIndexableInterface() {}
-
 quint8 IDBusIndexableInterface::getIndex() const
 {
     return static_cast<quint8>(getPropertyAndCheck<quint32>("Index"));
 }
+
+IDBusIndexableInterface::operator QString() const
+{
+    return m_interface_ % " no.\u00A0" % QString::number(getIndex());
+}
+
+IDBusIndexableInterface::IDBusIndexableInterface(const QString& inter, const QDBusObjectPath& obj)
+    : IDBusInterface(inter, obj)
+    , m_interface_(inter)
+{
+    qqInfo() << "creating an instance of"
+             << static_cast<QString>(*this);
+}
+
+IDBusIndexableInterface::~IDBusIndexableInterface() {}

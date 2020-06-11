@@ -31,7 +31,9 @@
 
 
 #define nqDebug() qDebug().nospace()
+#define qqDebug() qDebug().noquote()
 #define nqInfo() qInfo().nospace()
+#define qqInfo() qInfo().noquote()
 
 #define qStrL(str) QStringLiteral(str)
 #define qByteL(ba) QByteArrayLiteral(ba)

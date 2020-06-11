@@ -187,8 +187,8 @@ void Mapping::setActionType_(const ActionType action)
 quint32 Mapping::getButton() const
 {
     const auto ret = getAndCheckVariant_<quint32>(ActionType::Button);
-    nqInfo() << "button no.\u00A0" << m_button_->getIndex()
-             << " is mapped to the button no.\u00A0" << ret;
+    qqInfo() << static_cast<QString>(*m_button_)
+             << "is mapped to the button no.\u00A0" << ret;
 
     return ret;
 }
@@ -261,11 +261,11 @@ Mapping DBusButtonInterface::getMapping() const
 {
     auto ret = getPropertyAndCheck<Mapping>("Mapping");
 
-    nqDebug() << "linking button no.\u00A0" << getIndex()
-              << " to the `Mapping` instance";
+    qqDebug() << "linking" << static_cast<QString>(*this)
+              << "to the `Mapping` instance";
     ret.m_button_ = shared_from_this();
-    nqDebug() << "button no.\u00A0" << getIndex()
-              << " linked to the `Mapping` instance";
+    qqDebug() << static_cast<QString>(*this)
+              << "linked to the `Mapping` instance";
 
     return ret;
 }
@@ -277,7 +277,7 @@ void DBusButtonInterface::setMapping(const Mapping& mapping)
 
 void DBusButtonInterface::disable()
 {
-    nqDebug() << "disabling button no.\u00A0" << getIndex();
+    qqDebug() << "disabling" << static_cast<QString>(*this);
     callAndCheck("Disable");
-    nqDebug() << "button no.\u00A0" << getIndex() << " disabled";
+    qqDebug() << static_cast<QString>(*this) << "disabled";
 }
