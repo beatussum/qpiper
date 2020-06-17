@@ -29,7 +29,7 @@
 
 QDebug operator<<(QDebug debug, const DBusLedInterface::Mode mode)
 {
-    debug.nospace() << "the led is in `" << enumToString(mode) << "` mode";
+    debug.noquote() << enumToString(mode) << "mode";
 
     return debug;
 }
@@ -90,30 +90,18 @@ quint8 DBusLedInterface::getBitsNumber_() const
     Q_UNREACHABLE();
 }
 
-DBusLedInterface::DBusLedInterface(const QDBusObjectPath& obj)
-    : IDBusIndexableInterface("Led", obj)
-    , m_colorMax_(static_cast<quint32>(qPow(2, getBitsNumber_() * 8)) - 1)
-{
-    qDBusRegisterMetaType<Color>();
-
-    nqInfo() << "colors are " << getBitsNumber_()
-             << "-bits color-coded: let [0;"
-             << m_colorMax_ << ']';
-    qInfo() << getMode();
-}
-
 QString DBusLedInterface::getModeDescription(const Mode mode)
 {
     switch (mode) {
         case Mode::Off:
-            return QObject::tr("LED is off.");
+            return QObject::tr("LED is off");
         case Mode::Constant:
-            return QObject::tr("LED is on with constant brightness.");
+            return QObject::tr("LED is on with constant brightness");
         case Mode::Cycles:
             return QObject::tr("LED cycles through a set of colors. This "
-                               "mode ignores the `Color` values.");
+                               "mode ignores the `Color` values");
         case Mode::Breathing:
-            return QObject::tr("LED uses a breathing-style animation.");
+            return QObject::tr("LED uses a breathing-style animation");
     }
 
     Q_UNREACHABLE();
@@ -123,14 +111,26 @@ QString DBusLedInterface::getColorDepthDescription(const ColorDepth depth)
 {
     switch (depth) {
         case ColorDepth::ZeroBits:
-            return QObject::tr("Zero bits per color: e.g. monochrome.");
+            return QObject::tr("Zero bits per color: e.g. monochrome");
         case ColorDepth::EightBits:
-            return QObject::tr("Eight bits per color.");
+            return QObject::tr("Eight bits per color");
         case ColorDepth::OneBit:
-            return QObject::tr("One bit per color.");
+            return QObject::tr("One bit per color");
     }
 
     Q_UNREACHABLE();
+}
+
+DBusLedInterface::DBusLedInterface(const QDBusObjectPath& obj)
+    : IDBusIndexableInterface("Led", obj)
+    , m_colorMax_(static_cast<quint32>(qPow(2, getBitsNumber_()) - 1))
+{
+    qDBusRegisterMetaType<Color>();
+
+    nqInfo() << "colors are " << getBitsNumber_()
+             << "-bits color-coded: let [0;"
+             << m_colorMax_ << ']';
+    qInfo() << "the led is in" << getMode();
 }
 
 quint8 DBusLedInterface::getMode_() const
@@ -138,25 +138,27 @@ quint8 DBusLedInterface::getMode_() const
      return getPropertyAndCheck<quint8>("Mode");
 }
 
-void DBusLedInterface::setMode_(const quint8 mode)
-{
-    setPropertyAndCheck("Mode", mode);
-}
-
 DBusLedInterface::Mode DBusLedInterface::getMode() const
 {
      return static_cast<Mode>(getMode_());
 }
 
+void DBusLedInterface::setMode_(const quint8 mode)
+{
+    setPropertyAndCheck("Mode", mode);
+}
+
 void DBusLedInterface::setMode(const Mode mode)
 {
+    qqInfo() << "setting" << toString() << "to" << mode;
+
     setMode_(static_cast<quint8>(mode));
 }
 
 Color DBusLedInterface::getColor() const
 {
     auto ret = getPropertyAndCheck<Color>("Color");
-    DBusException::checkInRange("Brightness", m_colorMax_,
+    DBusException::checkInRange("Color", m_colorMax_,
                                 ret.red, ret.green, ret.blue);
 
     return ret;
@@ -164,7 +166,10 @@ Color DBusLedInterface::getColor() const
 
 void DBusLedInterface::setColor(const Color color)
 {
-    DBusException::checkInRange("Brightness", m_colorMax_,
+    qqInfo() << "setting the color profile of" << toString()
+             << "to" << color;
+
+    DBusException::checkInRange("Color", m_colorMax_,
                                 color.red, color.green, color.blue);
     setPropertyAndCheck("Color", color);
 }
@@ -182,14 +187,17 @@ DBusLedInterface::ColorDepth DBusLedInterface::getColorDepth() const
 quint16 DBusLedInterface::getEffectDuration() const
 {
     auto ret = getPropertyAndCheck<quint16>("EffectDuration");
-    DBusException::checkInRange("Brightness", 10'000_us, ret);
+    DBusException::checkInRange("EffectDuration", 10'000_us, ret);
 
     return ret;
 }
 
 void DBusLedInterface::setEffectDuration(const quint16 effect)
 {
-    DBusException::checkInRange("Brightness", 10'000_us, effect);
+    qqInfo() << "setting the effect duration of" << toString()
+             << "to" << effect;
+
+    DBusException::checkInRange("EffectDuration", 10'000_us, effect);
     setPropertyAndCheck("EffectDuration", effect);
 }
 
@@ -200,5 +208,8 @@ quint8 DBusLedInterface::getBrightness() const
 
 void DBusLedInterface::setBrightness(const quint8 brightness)
 {
+    qqInfo() << "setting the brightness of" << toString()
+             << "to" << brightness;
+
     setPropertyAndCheck("Brightness", brightness);
 }

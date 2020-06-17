@@ -26,8 +26,8 @@
 
 #include <memory>
 
-#include <QtCore/QLatin1String>
 #include <QtCore/QMetaEnum>
+#include <QtCore/QStringBuilder>
 
 
 #define nqDebug() qDebug().nospace()
@@ -50,6 +50,7 @@ friend struct QtPrivate::QVariantValueHelper<T>;                   \
                                                                    \
 private:                                                           \
 T() = default;
+////////////////////////////////////////////////////////////////////
 
 template<class T>
 using Shared = std::shared_ptr<T>;
@@ -83,10 +84,10 @@ struct is_comparable<T,
  */
 extern const bool isColoredOutput;
 
-constexpr quint16 operator "" _us(const quint64 value)
+constexpr quint16 operator "" _us(const quint64 value) noexcept
     { return static_cast<quint16>(value); }
 
-QLatin1String operator "" _qls(const char *const value, const std::size_t size);
+QLatin1String operator "" _qls(const char *const, const std::size_t) noexcept;
 
 /**
  * @brief Check the value of an environment variable
@@ -95,12 +96,12 @@ QLatin1String operator "" _qls(const char *const value, const std::size_t size);
  *              e.g. _VAR_ not _QPIPER_VAR_
  * @param value the value to be tested
  *
- * @return true if the value of \p name is equal to \p value
+ * @return `true` if the value of \p name is equal to \p value
  */
 bool qPiperGetEnv(const QByteArray name, const QByteArray value);
 
 /**
- * @brief Contain some ANSI escape code
+ * @brief Contain some ANSI escape codes
  */
 namespace AnsiColor
 {
@@ -119,13 +120,13 @@ namespace AnsiColor
          */
         inline const QLatin1String b = "\u001B[1m"_qls;
         /**
-         * @brief Bold red
-         */
-        inline const QLatin1String bred = "\u001B[1;31m"_qls;
-        /**
          * @brief Bold green
          */
         inline const QLatin1String bgreen = "\u001B[1;32m"_qls;
+        /**
+         * @brief Bold red
+         */
+        inline const QLatin1String bred = "\u001B[1;31m"_qls;
     }
 
     /**
@@ -134,10 +135,6 @@ namespace AnsiColor
     namespace bg
     {
         /**
-         * @brief Bright yellow
-         */
-        inline const QLatin1String bryellow = "\u001B[103m"_qls;
-        /**
          * @brief Bright blue
          */
         inline const QLatin1String brblue = "\u001B[104m"_qls;
@@ -145,10 +142,14 @@ namespace AnsiColor
          * @brief Bright cyan
          */
         inline const QLatin1String brcyan = "\u001B[106m"_qls;
+        /**
+         * @brief Bright yellow
+         */
+        inline const QLatin1String bryellow = "\u001B[103m"_qls;
     }
 }
 
-void qPiperMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg);
+void qPiperMessageHandler(QtMsgType, const QMessageLogContext&, const QString&);
 
 /**
  * @brief Get the name of an enumeration constant
@@ -159,10 +160,22 @@ void qPiperMessageHandler(QtMsgType type, const QMessageLogContext& context, con
  * @return the name of the constant
  */
 template<typename T>
-constexpr const char* enumToString(const T value)
+QString enumToString(const T value)
 {
-    return QMetaEnum::fromType<T>().valueToKey(static_cast<int>(value));
+    return '`' % QString(QMetaEnum::fromType<T>()
+                         .valueToKey(static_cast<int>(value))) % '`';
 }
+
+/**
+ * @brief Get the correct separator between two array elements:
+ * e.g. a _coma_ or the word _and_
+ *
+ * @param size the size of the array
+ * @param i    the index of the current element
+ *
+ * @return ", " or " and "
+ */
+const char* getVecSeparator(const int size, const int i) noexcept;
 
 
 #endif // QPIPER_CORE_HPP

@@ -19,7 +19,6 @@
 #ifndef QPIPER_DBUS_BUTTON_INTERFACE_HPP
 #define QPIPER_DBUS_BUTTON_INTERFACE_HPP
 
-#include "core/core.hpp"
 #include "dbus/IDBusIndexableInterface.hpp"
 
 
@@ -51,6 +50,7 @@ class Mapping final
     ENABLE_QVARIANT(Mapping)
 
     friend class DBusButtonInterface;
+    friend QDebug operator<<(QDebug, const Mapping);
     friend QDBusArgument& operator<<(QDBusArgument&, const Mapping&);
     friend const QDBusArgument& operator>>(const QDBusArgument&, Mapping&);
 public:
@@ -90,7 +90,7 @@ private:
 
     void setActionType_(const ActionType);
 public:
-    ActionType getActionType() const { return m_type_; }
+    ActionType getActionType() const noexcept { return m_type_; }
 
     quint32 getButton() const;
     void setButton(const quint32);
@@ -125,7 +125,7 @@ public:
     Mapping getMapping() const;
     void setMapping(const Mapping&);
 
-    QVector<Mapping::ActionType> getSupportedActionTypes() const
+    QVector<Mapping::ActionType> getSupportedActionTypes() const noexcept
         { return m_supportedActionTypes_; }
 public slots:
     void disable();
@@ -134,30 +134,26 @@ private:
 };
 
 
-QString actionsToStr(const QVector<Mapping::ActionType>& actions);
-
 class BadActionType final : public std::runtime_error
 {
 public:
-    BadActionType(const char *const is, const QString& suffix)
-        : std::runtime_error((qStrL("The action type is `") % is
-                              % "` " % suffix).toLatin1())
+    explicit BadActionType(const Mapping::ActionType is, const QString& msg = QString())
+        : std::runtime_error(("The action type " % enumToString(is)
+                              % " is not compatible with the current device"
+                              % (msg.isNull()
+                                 ? qStrL("")
+                                 : qStrL(": ") % msg))
+                             .toLatin1())
     {}
 
-    BadActionType(const char *const is, const char *const shouldBe)
-        : BadActionType(is, qStrL("but should be `") % shouldBe % '`')
-    {}
-
-    BadActionType(const char *const is, const QVector<Mapping::ActionType>& actions)
-        : BadActionType(is, ", which is not compatible with the current device:"
-                            " only " % actionsToStr(actions) % " are allowed")
+    explicit BadActionType(const Mapping::ActionType is, const Mapping::ActionType shouldBe)
+        : BadActionType(is, "it should be " % enumToString(shouldBe))
     {}
 };
 
 
 QDebug operator<<(QDebug, const Macro);
 QDebug operator<<(QDebug, const QVector<Macro>&);
-QDebug operator<<(QDebug, const Mapping::ActionType);
 QDebug operator<<(QDebug, const QVector<Mapping::ActionType>&);
 
 QDBusArgument& operator<<(QDBusArgument&, const Macro);

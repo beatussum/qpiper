@@ -16,7 +16,6 @@
  */
 
 
-#include "core/core.hpp"
 #include "dbus/IDBusIndexableInterface.hpp"
 
 #include <QtCore/QtDebug>
@@ -27,7 +26,7 @@ quint8 IDBusIndexableInterface::getIndex() const
     return static_cast<quint8>(getPropertyAndCheck<quint32>("Index"));
 }
 
-IDBusIndexableInterface::operator QString() const
+QString IDBusIndexableInterface::toString() const
 {
     return m_interface_ % " no.\u00A0" % QString::number(getIndex());
 }
@@ -37,7 +36,7 @@ IDBusIndexableInterface::IDBusIndexableInterface(const QString& inter, const QDB
     , m_interface_(inter)
 {
     qqInfo() << "creating an instance of"
-             << static_cast<QString>(*this);
+             << toString();
 }
 
 IDBusIndexableInterface::~IDBusIndexableInterface() {}

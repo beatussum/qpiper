@@ -21,7 +21,7 @@
 #include <iostream>
 
 
-QLatin1String operator "" _qls(const char *const value, const std::size_t size)
+QLatin1String operator "" _qls(const char *const value, const std::size_t size) noexcept
 {
     return QLatin1String(value, static_cast<quint16>(size));
 }
@@ -45,7 +45,7 @@ void qPiperMessageHandler(QtMsgType type, const QMessageLogContext& context, con
             tmp = isColoredOutput
                   ? qStrL("%1%2DEBUG%3\u00A0(%4{fileName}%3:%5{line}%3): %1{msg}%3\n")
                     .arg(fg::b).arg(bg::brcyan).arg(rst).arg(fg::bred).arg(fg::bgreen)
-                  : qStrL("DEBUG\u00A0({fileName}:{line}): {msg}\n");
+                  : "DEBUG\u00A0({fileName}:{line}): {msg}\n";
 
             std::cerr << tmp.replace("{fileName}"_qls, fileName)
                             .replace("{line}"_qls, QString::number(context.line))
@@ -55,7 +55,7 @@ void qPiperMessageHandler(QtMsgType type, const QMessageLogContext& context, con
             tmp = isColoredOutput
                   ? qStrL("%1%2!!\u00A0WARNING\u00A0!!%3\u00A0(%4{function}%3): %5{msg}%3\n")
                     .arg(fg::bred).arg(bg::bryellow).arg(rst).arg(fg::bred).arg(fg::b)
-                  : qStrL("!!\u00A0WARNING\u00A0!!\u00A0({function}): {msg}\n");
+                  : "!!\u00A0WARNING\u00A0!!\u00A0({function}): {msg}\n";
 
             std::cerr << tmp.replace("{function}"_qls, context.function)
                             .replace("{msg}"_qls, msg).toStdString();
@@ -63,9 +63,21 @@ void qPiperMessageHandler(QtMsgType type, const QMessageLogContext& context, con
         default:
             tmp = isColoredOutput
                   ? qStrL("%1%2INFO%3: %1{msg}%3\n").arg(fg::b).arg(bg::brblue).arg(rst)
-                  : qStrL("INFO: {msg}\n");
+                  : "INFO: {msg}\n";
 
             std::cout << tmp.replace("{msg}"_qls, msg).toStdString();
             break;
+    }
+}
+
+const char* getVecSeparator(const int size, const int i) noexcept
+{
+    switch (size - i) {
+        case 2:
+            return " and ";
+        case 1:
+            return "";
+        default:
+            return ", ";
     }
 }

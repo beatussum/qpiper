@@ -16,8 +16,8 @@
  */
 
 
-#ifndef QPIPER_DBUS_INDEXABLE_INTERFACE_HPP
-#define QPIPER_DBUS_INDEXABLE_INTERFACE_HPP
+#ifndef QPIPER_I_DBUS_INDEXABLE_INTERFACE_HPP
+#define QPIPER_I_DBUS_INDEXABLE_INTERFACE_HPP
 
 #include "dbus/IDBusInterface.hpp"
 
@@ -33,15 +33,13 @@ class IDBusIndexableInterface : protected IDBusInterface
 
 public:
     quint8 getIndex() const;
-
-    explicit operator QString() const;
+    QString toString() const;
 
     explicit IDBusIndexableInterface(const QString& inter, const QDBusObjectPath& obj);
-
     virtual ~IDBusIndexableInterface() = 0;
 private:
     const QString m_interface_;
 };
 
 
-#endif // QPIPER_DBUS_INDEXABLE_INTERFACE_HPP
+#endif // QPIPER_I_DBUS_INDEXABLE_INTERFACE_HPP

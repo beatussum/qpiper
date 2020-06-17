@@ -16,12 +16,11 @@
  */
 
 
-#ifndef QPIPER_DBUS_ABSTRACT_INTERFACE_HPP
-#define QPIPER_DBUS_ABSTRACT_INTERFACE_HPP
+#ifndef QPIPER_I_DBUS_INTERFACE_HPP
+#define QPIPER_I_DBUS_INTERFACE_HPP
 
 #include "core/core.hpp"
 
-#include <QtCore/QStringBuilder>
 #include <QtDBus/QDBusInterface>
 
 
@@ -41,7 +40,7 @@ public:
      */
     explicit DBusException(const char *const name, const QString& desc)
         : std::runtime_error((qStrL("Unable to get or set the property ")
-                              % name % ": " % desc).toLatin1())
+                              % name % ':' % desc).toLatin1())
     {}
 
     /**
@@ -54,7 +53,7 @@ public:
     explicit DBusException(const char *const name, const QDBusError& error)
         : DBusException(name, "\n\t" % error.name() % ": " % error.message())
     {}
-
+public:
     /**
      * @brief Check if the value of a property is within a given range
      *
@@ -77,8 +76,8 @@ void DBusException::checkInRange(const char *const name, T lim, T first, Params.
                   "type and comparable");
 
     if (first > lim) {
-        throw DBusException(name, QString::number(first)
-                                  % qStrL(" not in the range [0;")
+        throw DBusException(name, ' ' % QString::number(first)
+                                  % " not in the range [0;"
                                   % QString::number(lim) % ']');
     } else if constexpr (sizeof...(params) > 0) {
         DBusException::checkInRange(name, lim, params...);
@@ -114,7 +113,6 @@ protected:
      * @param obj   the DBus object
      */
     explicit IDBusInterface(const QString& inter, const QDBusObjectPath& obj);
-
     virtual ~IDBusInterface() = 0;
 
     /**
@@ -173,4 +171,4 @@ void IDBusInterface::setPropertyAndCheck(const char *const name, T value)
 }
 
 
-#endif // QPIPER_DBUS_ABSTRACT_INTERFACE_HPP
+#endif // QPIPER_I_DBUS_INTERFACE_HPP

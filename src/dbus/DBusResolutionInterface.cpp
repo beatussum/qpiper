@@ -28,35 +28,27 @@
 
 QDebug operator<<(QDebug debug, const Axes axes)
 {
-    debug.nospace().noquote() << static_cast<QString>(axes);
+    debug.nospace().noquote() << axes.toString();
 
     return debug.space();
 }
 
 QDebug operator<<(QDebug debug, const Resolution res)
 {
-    debug.nospace().noquote() << static_cast<QString>(res);
+    debug.noquote() << res.toString();
 
-    return debug.space();
+    return debug;
 }
 
-QDebug operator<<(QDebug debug, const QVector<Resolution> res)
+QDebug operator<<(QDebug debug, const QVector<Resolution>& res)
 {
     debug.nospace();
 
-    const auto size = res.size();
-    for (int i = 0; i < size; ++i) {
-        debug << res.at(i).m_axis_;
-
-        switch (size - i) {
-            case 2:
-                debug << " and ";
-                break;
-            case 1:
-                break;
-            default:
-                debug << ", ";
-                break;
+    {
+        const int size = res.size();
+        for (int i = 0; i < size; ++i) {
+            debug << res.at(i)
+                  << getVecSeparator(size, i);
         }
     }
 
@@ -77,7 +69,6 @@ QDBusArgument& operator<<(QDBusArgument& arg, const Axes axes)
     arg << static_cast<quint32>(axes.x) << static_cast<quint32>(axes.y);
     arg.endStructure();
 
-    qDebug() << axes << "marshalled";
     return arg;
 }
 
@@ -91,7 +82,6 @@ const QDBusArgument& operator>>(const QDBusArgument& arg, Axes& axes)
     axes.y = static_cast<quint16>(qdbus_cast<quint32>(arg));
     arg.endStructure();
 
-    qDebug() << axes << "demarshalled";
     return arg;
 }
 
@@ -100,7 +90,7 @@ const QDBusArgument& operator>>(const QDBusArgument& arg, Axes& axes)
 /*                 Axes                 */
 /*######################################*/
 
-Axes::operator QString() const
+QString Axes::toString() const
 {
     return '(' % QString::number(x) % ", " % QString::number(y) % ')';
 }
@@ -109,41 +99,6 @@ Axes::operator QString() const
 /*######################################*/
 /*              Resolution              */
 /*######################################*/
-
-QString Resolution::translate() const
-{
-    switch (m_type_) {
-        case Null:
-            return QObject::tr("null");
-        case Axis:
-            return QObject::tr("%1\u00A0dpi").arg(m_axis_);
-        case Axes:
-            return QObject::tr("%1\u00A0dpi (for the x-axis) and "
-                               "%2\u00A0dpi (for the y-axis)")
-                   .arg(m_axes_.x).arg(m_axes_.y);
-    }
-
-    Q_UNREACHABLE();
-}
-
-Resolution::operator QString() const
-{
-    switch (m_type_) {
-        case Axis:
-            return '(' % QString::number(m_axis_) % ')';
-        case Axes:
-            return static_cast<QString>(m_axes_);
-        case Null:
-            return typeToString(Null);
-    }
-
-    Q_UNREACHABLE();
-}
-
-std::pair<Resolution, Resolution> Resolution::tie_() const
-{
-    return std::make_pair(m_axes_.x, m_axes_.y);
-}
 
 bool operator==(const Resolution a, const Resolution b)
 {
@@ -167,6 +122,41 @@ bool operator==(const Resolution a, const Resolution b)
     return ret;
 }
 
+Resolution::operator std::pair<Resolution, Resolution>() const
+{
+    return std::make_pair(m_axes_.x, m_axes_.y);
+}
+
+QString Resolution::translate() const
+{
+    switch (m_type_) {
+        case Null:
+            return QObject::tr("null");
+        case Axis:
+            return QObject::tr("%1\u00A0dpi").arg(m_axis_);
+        case Axes:
+            return QObject::tr("%1\u00A0dpi (for the x-axis) and "
+                               "%2\u00A0dpi (for the y-axis)")
+                   .arg(m_axes_.x).arg(m_axes_.y);
+    }
+
+    Q_UNREACHABLE();
+}
+
+QString Resolution::toString() const
+{
+    switch (m_type_) {
+        case Axis:
+            return '(' % QString::number(m_axis_) % ')';
+        case Axes:
+            return m_axes_.toString();
+        case Null:
+            return typeToString(Null);
+    }
+
+    Q_UNREACHABLE();
+}
+
 
 /*#####################################*/
 /*       DBusResolutionInterface       */
@@ -174,8 +164,7 @@ bool operator==(const Resolution a, const Resolution b)
 
 void DBusResolutionInterface::checkResolution(const Resolution res) const
 {
-    qqDebug() << "checking whether" << static_cast<QString>(*this)
-              << "is valid";
+    qqDebug() << "checking whether" << toString() << "is valid";
 
     bool a = (res.m_type_ == m_type_);
 
@@ -186,9 +175,10 @@ void DBusResolutionInterface::checkResolution(const Resolution res) const
                 break;
             case Resolution::Axes:
                 {
-                    const auto [x, y] = res.tie_();
+                    const auto [x, y] = static_cast<std::pair<Resolution,Resolution>>(res);
+
                     a = (m_supportedResolutions_.contains(x)
-                          && m_supportedResolutions_.contains(y));
+                        && m_supportedResolutions_.contains(y));
                 }
                 break;
             case Resolution::Null:
@@ -200,8 +190,6 @@ void DBusResolutionInterface::checkResolution(const Resolution res) const
 
     if (!a)
         throw BadResolution(res);
-
-    qqDebug() << static_cast<QString>(*this) << "is valid";
 }
 
 QVector<quint32> DBusResolutionInterface::getSupportedResolutions_() const
@@ -230,7 +218,7 @@ QDBusVariant DBusResolutionInterface::getResolution_() const
 
 Resolution DBusResolutionInterface::getResolution(const bool assumed) const
 {
-    qqDebug() << "getting the value of" << static_cast<QString>(*this);
+    qqDebug() << "getting the value of" << toString();
     Resolution ret;
 
     switch (const auto& var = getResolution_().variant(); var.type()) {
@@ -246,15 +234,13 @@ Resolution DBusResolutionInterface::getResolution(const bool assumed) const
             break;
     }
 
-    if (!assumed) {
-        checkResolution(ret);
-    } else {
+    if (assumed) {
         qDebug() << "this value is assumed and therefore no check will be "
                     "performed because `assumed = true`";
+    } else {
+        checkResolution(ret);
     }
 
-    qqDebug() << "the value of" << static_cast<QString>(*this)
-              << "get: let" << ret;
     return ret;
 }
 
@@ -265,7 +251,7 @@ void DBusResolutionInterface::setResolution_(const QDBusVariant& res)
 
 void DBusResolutionInterface::setResolution(const Resolution res)
 {
-    qqDebug() << "setting" << static_cast<QString>(*this) << "to" << res;
+    qqInfo() << "setting" << toString() << "to" << res;
     checkResolution(res);
     QDBusVariant var;
 
@@ -283,7 +269,6 @@ void DBusResolutionInterface::setResolution(const Resolution res)
     }
 
     setResolution_(var);
-    qqDebug() << static_cast<QString>(*this) << "set to" << res;
 }
 
 bool DBusResolutionInterface::isDefault() const
@@ -293,9 +278,8 @@ bool DBusResolutionInterface::isDefault() const
 
 void DBusResolutionInterface::setDefault()
 {
-    qqDebug() << "setting" << static_cast<QString>(*this) << "by default";
+    qqDebug() << "setting" << toString() << "by default";
     callAndCheck("SetDefault");
-    qqDebug() << static_cast<QString>(*this) << "set by default";
 }
 
 bool DBusResolutionInterface::isActive() const
@@ -305,7 +289,6 @@ bool DBusResolutionInterface::isActive() const
 
 void DBusResolutionInterface::setActive()
 {
-    qqDebug() << "activating" << static_cast<QString>(*this);
+    qqDebug() << "activating" << toString();
     callAndCheck("SetActive");
-    qqDebug() << static_cast<QString>(*this) << "activated";
 }

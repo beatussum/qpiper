@@ -28,14 +28,14 @@ class QDBusArgument;
 struct Axes final
 {
 public:
-    explicit operator QString() const;
+    QString toString() const;
 public:
     quint16 x;
     quint16 y;
 };
 Q_DECLARE_METATYPE(Axes)
 
-constexpr bool operator==(const Axes a, const Axes b)
+constexpr bool operator==(const Axes a, const Axes b) noexcept
     { return (a.x == b.x) && (a.y == b.y); }
 
 
@@ -43,30 +43,29 @@ class Resolution final
 {
     friend class DBusResolutionInterface;
     friend QDebug operator<<(QDebug, const Resolution);
-    friend QDebug operator<<(QDebug, const QVector<Resolution>);
+    friend QDebug operator<<(QDebug, const QVector<Resolution>&);
     friend bool operator==(const Resolution, const Resolution);
 public:
     enum Type : quint8 { Null, Axis, Axes };
 private:
-    std::pair<Resolution, Resolution> tie_() const;
+    explicit operator std::pair<Resolution, Resolution>() const;
 public:
-    constexpr Resolution(const quint16 xy)
+    static constexpr const char* typeToString(const Type) noexcept;
+public:
+    constexpr Resolution(const quint16 xy) noexcept
         : m_type_(Axis), m_axis_(xy)
     {}
 
-    constexpr Resolution(const struct Axes xy)
+    constexpr Resolution(const struct Axes xy) noexcept
         : m_type_(Axes), m_axes_(xy)
     {}
 
-    constexpr Resolution(std::nullptr_t = nullptr)
+    constexpr Resolution(std::nullptr_t = nullptr) noexcept
         : m_type_(Null), m_null_(true)
     {}
 
     QString translate() const;
-
-    static constexpr const char* typeToString(const Type);
-
-    explicit operator QString() const;
+    QString toString() const;
 private:
     Type m_type_;
 
@@ -77,7 +76,7 @@ private:
     };
 };
 
-constexpr const char* Resolution::typeToString(const Type type)
+constexpr const char* Resolution::typeToString(const Type type) noexcept
 {
     switch (type) {
         case Resolution::Axis:
@@ -95,16 +94,18 @@ constexpr const char* Resolution::typeToString(const Type type)
 class BadResolution final : public std::runtime_error
 {
 public:
-    BadResolution(const Resolution nsupported, const QString msg = QString())
+    explicit BadResolution(const Resolution nsupported, const QString msg = QString())
         : std::runtime_error(("The resolution "
-                              % static_cast<QString>(nsupported)
+                              % nsupported.toString()
                               % " is not compatible with the current device"
-                              % (msg.isNull() ? "." : ": ") % msg)
+                              % (msg.isNull()
+                                 ? qStrL("")
+                                 : qStrL(": ") % msg))
                              .toLatin1())
     {}
 
-    BadResolution(const Resolution nsupported, const Resolution::Type is, const Resolution::Type shouldBe)
-        : BadResolution(nsupported, QString("the resolution type is of type ")
+    explicit BadResolution(const Resolution nsupported, const Resolution::Type is, const Resolution::Type shouldBe)
+        : BadResolution(nsupported, qStrL("the resolution is of type ")
                                     % Resolution::typeToString(is)
                                     % " but should be of type "
                                     % Resolution::typeToString(shouldBe))
@@ -121,9 +122,9 @@ class DBusResolutionInterface final : private IDBusIndexableInterface
     Q_PROPERTY(QVector<quint32> Resolutions READ getSupportedResolutions_)
 
 private:
-
     void checkResolution(const Resolution) const;
     QVector<quint32> getSupportedResolutions_() const;
+
     QDBusVariant getResolution_() const;
     void setResolution_(const QDBusVariant&);
 public:
@@ -132,8 +133,10 @@ public:
     Resolution getResolution(const bool assumed = false) const;
     void setResolution(const Resolution);
 
-    QVector<Resolution> getSupportedResolutions() const
+    QVector<Resolution> getSupportedResolutions() const noexcept
         { return m_supportedResolutions_; }
+
+    Resolution::Type getType() const noexcept { return m_type_; }
 
     bool isActive() const;
     bool isDefault() const;
